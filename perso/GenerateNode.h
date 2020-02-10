@@ -11,3 +11,4 @@ int checkLabelPropagationEnds(adjmatrix *g, unsigned long *labels);
 
 void mergeSort(unsigned long *array, int l, int r);
 void merge(unsigned long *array, int debut,int pivot, int fin);
+unsigned long get_random_node(unsigned long *array, unsigned long max, int counter, int length);
