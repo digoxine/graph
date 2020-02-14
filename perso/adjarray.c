@@ -27,7 +27,7 @@ Up to 200 million edges on my laptop with 8G of RAM: takes more or less 4G of RA
 #include <stdio.h>
 #include <time.h>//to estimate the runing time
 
-#define NLINKS 100000000 //maximum number of edges for memory allocation, will increase if needed
+#define NLINKS 100000 //maximum number of edges for memory allocation, will increase if needed
 
 //Notre structure des sommets visites initialisé à 0
 typedef struct {
@@ -120,10 +120,10 @@ void mkadjlist(adjlist* g){
 
 //freeing memory
 void free_adjlist(adjlist *g){
-	free(g->edges);
-	free(g->cd);
-	free(g->adj);
-	free(g);
+  free(g->edges);
+  free(g->cd);
+  free(g->adj);
+  free(g);
 }
 
 void markNode(Visited *v, unsigned long s )
