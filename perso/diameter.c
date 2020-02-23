@@ -24,6 +24,7 @@ unsigned long find_bigger_connected_component(adjlist *g)
 	  cpsTailleMax = tailleComp;
 	  nodeMaxComponent = s;
 	}
+      
     }
   //printf("noeud max = %lu taille = %d",nodeMaxComponent, cpsTailleMax);
   return nodeMaxComponent;
@@ -31,7 +32,7 @@ unsigned long find_bigger_connected_component(adjlist *g)
 
 
 int bfs(adjlist *g, unsigned long s, Visited *visit)
-{
+{//O(m+nlog(n))
   int tailleComposante=1;
   markNode(visit,s);
   Fifo *f = construct_Fifo(g);
@@ -58,7 +59,7 @@ int bfs(adjlist *g, unsigned long s, Visited *visit)
 
 
 unsigned long get_random_node(Visited *v)
-{
+{//O(n)
   int r = rand() % v->nbNoeudsvisites;
   int i = 0;
   for(int j=0; j<v->taille; j++)
@@ -93,14 +94,7 @@ int diameter(adjlist *g)
   printf("noeud max component : %lu \n",nodeOfMaxComponent);
   
   int taille = bfs(g,nodeOfMaxComponent,visit);
-  /*printf("Debut tableau\n");;
-  for(int i=0; i<visit->taille; i++)
-    {
-      printf("%lu |",visit->visited[i]);
-    }
-
-  printf("fin tableau\n");
-  */
+  //printf("taille de notre composante : %d\n",taille);
   //Tous les sommets de la composante connexe contenant s sont à 1 le reste est à 0
   
   //Ici nous allons utiliser une heuristique particulière car si nous avons une composante connexe unique, en essayant de déterminer une lower bound du diamètre en passant en revue tous les noeuds de la composante va majorer bien trop nos temps de calculs .
@@ -112,9 +106,10 @@ int diameter(adjlist *g)
   for(int i=0; i<N_DIAMETER;i++)
     {
       unsigned long  u = get_random_node(visit);
-      //printf("le u determine aleatoirement %lu\n",u);
-      int tmp = max_chemin_djikstra(g,u,visit);
-     
+      
+      int tmp = max_chemin(g,u,visit);
+
+      printf("u:%lu,taille:%d\n",u,tmp);
       if(tmp<lowerBoundDiameter)
 	{
 	  lowerBoundDiameter = tmp;
@@ -123,7 +118,7 @@ int diameter(adjlist *g)
   
   return lowerBoundDiameter;
 }
-int max_chemin_djikstra(adjlist *g,unsigned long u, Visited *visit)
+int max_chemin(adjlist *g,unsigned long u, Visited *visit)
 {
   int *distances = malloc(g->n * sizeof(int));
   Visited *v = malloc(sizeof(Visited));

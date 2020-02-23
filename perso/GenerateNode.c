@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include "GenerateNode.h"
 #define p 0.8
-#define q 0.2
+#define q 0.1
 
 adjmatrix *generate_graph(int n_nodes, int n_clusters){
   int e1 = NLINKS;
@@ -16,7 +16,7 @@ adjmatrix *generate_graph(int n_nodes, int n_clusters){
     {
       array_nodes[i] = i;
     }
-  unsigned long *shuffled_array = fisher_yates(array_nodes,g->n);
+  //unsigned long *shuffled_array = fisher_yates(array_nodes,g->n);
   g->edges = malloc(e1*sizeof(edge));
 
   for(int i=0; i<n_nodes; i++)
@@ -26,9 +26,10 @@ adjmatrix *generate_graph(int n_nodes, int n_clusters){
       for(int j=i+1; j<n_nodes;j++)
 	{
 	  int cluster_2 = j/(n_nodes/n_clusters);
-	  float ra = (float) (rand()%100)/100;
+	  float ra = (float) ((rand()%100)/100.0);
+	  //printf("random : %f\n",ra);
 	  //printf("mon random est : %f\n",ra);
-	  
+	  //printf("Le noeud %d fait partie du noeud %d| le noeud :%d fait partie du cluster %d\n",i,cluster_1,j,cluster_2);
 	  if(cluster_1 == cluster_2)
 	    {
 	      //printf("Rentre dans le if du meme cluster\n");
@@ -46,7 +47,7 @@ adjmatrix *generate_graph(int n_nodes, int n_clusters){
 	    }
 	  else
 	    {
-	      printf("Rentre dans le if du cluster different \n");
+	      // printf("Rentre dans le if du cluster different \n");
 	      if(ra<q)
 		{//liaison avec un noeud d'un cluster avec un cluster different
 		  g->edges[g->e].s = i;
@@ -65,7 +66,7 @@ adjmatrix *generate_graph(int n_nodes, int n_clusters){
 }
 	  
 
-unsigned long *fisher_yates(unsigned long *array, int length)
+void fisher_yates(unsigned long *array, int length)
 {
   for(int i=1; i<=length;i++)
     {
@@ -74,8 +75,6 @@ unsigned long *fisher_yates(unsigned long *array, int length)
       array[r] = array[i];
       array[i] = tmp;
     }
-  
-  return array;
 }
 
 int checkLabelPropagationEnds(adjmatrix *g, unsigned long *labels){
@@ -92,23 +91,36 @@ int checkLabelPropagationEnds(adjmatrix *g, unsigned long *labels){
 unsigned long* label_propagation(adjmatrix *g)
 {
   unsigned long *labels = malloc(g->n*sizeof(unsigned long));
-  for(int i=0; i<g->n; i++)
+  for(unsigned long i=0; i<g->n; i++)
     {
       labels[i] = i;
     }
+  fisher_yates(labels,g->n);
+  printf("Affichage tableau label propagation\n");
+  
+  for(int i=0;i<g->n;i++)
+    {
+      printf("%lu,",labels[i]);      
+    }
+  printf("\n____________\n");
   
   //Randomisation
   //adjmatrix *copy = fisher_yates_adj(g);
   int k = 0;
+  //printf("avant while check\n");
   while(checkLabelPropagationEnds(g,labels)!=0)
     {
-      for(int i=0; i<g->n;i++)
+
+      for(unsigned long i=0; i<g->n;i++)
 	{
-	  unsigned long nd = highest_frequency(g,i,labels);	  	  
-	  printf("plus present voisin de %lu : %lu",i,nd);	  
+	  //unsigned long rd = rand()%(g->);
+	  //printf("random : %lu\n",rd);
+	  unsigned long nd = highest_frequency(g,i,labels);
+
+	  //printf("plus frequent voisin de %lu : %lu\n",i,nd);	  
 	  labels[i] = nd;	 
 	}
-      //k++;
+
     }
   return labels;
 }
@@ -134,13 +146,14 @@ unsigned long highest_frequency(adjmatrix *g, unsigned long u, unsigned long *la
   unsigned long *array = calloc(g->n,sizeof(unsigned long));
   for(int i=0;i<g->n;i++)
     {
-      if(g->mat[u*g->n + i]==1)
+      //printf("i:%d\n",i);
+      if(labels[i]>=labels[u] && g->mat[labels[(int) (u)]*g->n + i]==1)
 	{
-	  printf("noeud : %lu labels : %lu\n",i,labels[i]);
+	  // printf("noeud : %lu labels : %lu\n",i,labels[i]);
 	  array[labels[i]]++ ;
 	}
     }
-  
+  //printf("Sortie première boucle\n");
   unsigned long max = 0;
   unsigned long max_node=0;
   int already_matched = 1;
@@ -148,8 +161,9 @@ unsigned long highest_frequency(adjmatrix *g, unsigned long u, unsigned long *la
   
   for(int i=0;i<g->n;i++)
     {
-
-      if(array[i]==max)
+      //if(labels[i]<labels[u])
+      //continue;
+      if(array[labels[i]]==max)
 	{
 	  if(already_matched==0)
 	    {
@@ -157,12 +171,13 @@ unsigned long highest_frequency(adjmatrix *g, unsigned long u, unsigned long *la
 	    }
 	  else
 	    {
-	      counter_same_node_max = 1;
+	      //printf("On rentre dans le else\n");
+	      counter_same_node_max = 2;
 	      already_matched = 0;
 	    }
 	}
       
-      if(array[i]>max)
+      if(array[labels[i]]>max)
 	{
 	  //Réinitialisation des valeurs de comptages
 	  already_matched = 1;
@@ -172,23 +187,30 @@ unsigned long highest_frequency(adjmatrix *g, unsigned long u, unsigned long *la
 	  max_node = labels[i];	  
 	}
     }
-  if(already_matched==0)
-    return get_random_node(array, max, counter_same_node_max, g->n);
+  /*if(counter_same_node_max>1 && already_matched==0)
+  {
+      
+    unsigned long temp = get_random_node(array, max, counter_same_node_max, g->n,labels);
+      
+    printf("max=%lu, max_counter_node:%lu,temp:%u, labels[temp]=%lu\n",max,counter_same_node_max,temp,array[labels[temp]]);
+    return labels[temp];
+    }*/
+  //printf("Sortie deuxieme boucle\n");
   free(array);
   return max_node;
     
 }
 
-unsigned long get_random_node(unsigned long *array, unsigned long max, int counter,int length)
+unsigned long get_random_node(unsigned long *array, unsigned long max, int counter,int length,unsigned long *labels)
 {
-  int rd = rand()%counter;
-  int k=0;
+  unsigned long rd = rand()%(counter);
+  unsigned long k=0;
   for(unsigned long i=0; i<length; i++)
     {
       if(k==rd)
 	return i;
       
-      if(array[i]==max)
+      if(array[labels[i]]==max)
 	k++;
     }
   //N'est pas censé renvoyé -1
@@ -263,7 +285,8 @@ int main(int argc, char **argv)
   t1=time(NULL);
 
   //printf("Reading edgelist from file %s\n",argv[1]);
-  g=generate_graph(6,2);
+  g=generate_graph(400,4);
+
 
   
   printf("Number of nodes: %lu\n",g->n);
@@ -271,7 +294,17 @@ int main(int argc, char **argv)
 
   printf("Building the adjacency matrix\n");
   mkmatrix(g);
-  
+
+  printf("Affichage tableau\n");
+  /*
+  for(int i=0;i<g->n;i++)
+    {
+      printf("Noeud %lu :\n",i);
+      for(int j=0;j<g->n;j++)
+	printf("%lu,",g->mat[i*g->n+j]);
+    }
+  */
+  /*
   for(int i =0; i<g->n;i++)
     {
       printf("noeud %lu:\n",i);
@@ -282,15 +315,16 @@ int main(int argc, char **argv)
 	}
       printf("\n");
     }
-  
+  */
   unsigned long *labels = label_propagation(g);
   printf("Affichage tableau\n");
-
+  
   for(int i=0;i<g->n;i++)
     {
       printf("%lu,",labels[i]);      
     }
     printf("\n____________\n");
+  
   free_adjmatrix(g);
 
   t2=time(NULL);

@@ -13,6 +13,6 @@ int diameter(adjlist *g);
 unsigned long get_random_node(Visited *v);
 
 //Retourne le chemin de taille maximale déterminée avec Djikstra et partant du sommet s
-int max_chemin_djikstra(adjlist *g,unsigned long s,Visited *v);
+int max_chemin(adjlist *g,unsigned long s,Visited *v);
 
 

@@ -128,8 +128,8 @@ void free_adjlist(adjlist *g){
 
 void markNode(Visited *v, unsigned long s )
 {
-  v->nbNoeudsvisites = ++v->nbNoeudsvisites;
-  v->visited[s] = 1;
+++v->nbNoeudsvisites;
+v->visited[s] = 1;
 }
 
 //Renvoie le premier noeud qui n'a pas été visité
