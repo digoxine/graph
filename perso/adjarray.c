@@ -128,7 +128,7 @@ void free_adjlist(adjlist *g){
 
 void markNode(Visited *v, unsigned long s )
 {
-++v->nbNoeudsvisites;
+v->nbNoeudsvisites++;
 v->visited[s] = 1;
 }
 

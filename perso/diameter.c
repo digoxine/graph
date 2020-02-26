@@ -4,7 +4,7 @@
 #include <string.h>
 #include "diameter.h"
 
-#define N_DIAMETER 100
+#define N_DIAMETER 1000
 
 
 unsigned long find_bigger_connected_component(adjlist *g)
@@ -26,6 +26,8 @@ unsigned long find_bigger_connected_component(adjlist *g)
 	}
       
     }
+  free(visit->visited);
+  free(visit);
   //printf("noeud max = %lu taille = %d",nodeMaxComponent, cpsTailleMax);
   return nodeMaxComponent;
 }
@@ -49,9 +51,9 @@ int bfs(adjlist *g, unsigned long s, Visited *visit)
 	    add_fifo(f,v);
 	    markNode(visit,v);
 	    tailleComposante++;
-	  }
-
+	  }	
       }
+      //markNode(visit,u);
     }
   //printf("Taille de la composante contenant %lu est %d \n",s,tailleComposante);
   return tailleComposante;
@@ -93,6 +95,7 @@ int diameter(adjlist *g)
 
   printf("noeud max component : %lu \n",nodeOfMaxComponent);
   
+
   int taille = bfs(g,nodeOfMaxComponent,visit);
   //printf("taille de notre composante : %d\n",taille);
   //Tous les sommets de la composante connexe contenant s sont à 1 le reste est à 0
@@ -108,8 +111,8 @@ int diameter(adjlist *g)
       unsigned long  u = get_random_node(visit);
       
       int tmp = max_chemin(g,u,visit);
-
-      printf("u:%lu,taille:%d\n",u,tmp);
+      //visit->visited[u] = 2;
+      //printf("u:%lu,taille:%d\n",u,tmp);
       if(tmp<lowerBoundDiameter)
 	{
 	  lowerBoundDiameter = tmp;
@@ -121,25 +124,26 @@ int diameter(adjlist *g)
 int max_chemin(adjlist *g,unsigned long u, Visited *visit)
 {
   int *distances = malloc(g->n * sizeof(int));
+  
   Visited *v = malloc(sizeof(Visited));
   v->taille = visit->taille;
   v->nbNoeudsvisites = visit->nbNoeudsvisites;
   v->visited = malloc(v->taille * sizeof(unsigned long));
-
+  
   //Toutes les cases de v->visited a 0 ne font pas partie de la composante connexe
   //Toutes les cases de v->visited font partie de la composante connexe
   
   for(int i=0; i<g->n; i++)
     {
       //Case à 2 ne fait pas partie de la composante connexe
-      //case à 0 font partie de la composante connexe mais pas encore visite
+      //case à 0 font partie de la composante connexe mais pas encore visitenn
       if(visit->visited[i]==0)
 	v->visited[i]=2;
       if(visit->visited[i]==1)
 	v->visited[i]=0;
       distances[i] = g->n; //la distance ne peut pas etre supérieure au nombre de sommet sachant que chaque arête a un poids de 1.
     }
-  markNode(v,u);
+  //markNode(v,u);
   distances[u]=0;
   Fifo *f = construct_Fifo(g);
   add_fifo(f,u);
@@ -147,39 +151,41 @@ int max_chemin(adjlist *g,unsigned long u, Visited *visit)
   while(isEmpty(f)!=0)
     {
       unsigned long u = pop(f);
-
+      if(v->visited[u]==1)
+	continue;
       for(int i=g->cd[u]; i<g->cd[u+1];i++)
 	{
+
 	  unsigned long neighbor = g->adj[i];
+	  if(v->visited[neighbor]==1)
+	    continue;
+	  if(distances[neighbor] > distances[u]+1)
+		distances[neighbor] = distances[u] + 1;	
 	  if(v->visited[neighbor]==0)
 	    {
 	      add_fifo(f,neighbor);
-	      markNode(v,neighbor);
-	      if(distances[neighbor] > distances[u]+1)
-		distances[neighbor] = distances[u] + 1;	      
+	      //markNode(v,neighbor);    
 	    }
-	  if(v->visited[neighbor]==1)
-	    {
-	      if(distances[neighbor] > distances[u]+1)
-		distances[neighbor] = distances[u] + 1;
-	    }
+	  
 	}
+           markNode(v,u);
     }
-  //Affichage du vecteur distance
-  //printf("Affichage du vecteur distance\n");
-  //for(int i=0;i<g->n;i++)
-  //{
-  //  printf("%d ",distances[i]);
-  //}
-  //printf("\nFin affichage du vecteur distance\n");
+  /*
+  printf("Distance tableau \n");
+  for(int i=0; i<g->n; i++)
+    {
+      printf("%lu,",distances[i]);      	
+    }
+
+    printf("fin tableau ===========\n");*/
   int max = 0;
   for(int i=0; i<g->n; i++)
     {
-      //printf("%lu |",distances[i]);
 	if(max<distances[i] && distances[i]<g->n)
 	  max=distances[i];
     }
-  
+  free(v->visited);
+  free(v);
   return max;
 }
 
@@ -215,114 +221,3 @@ int main(int argc,char** argv){
   return 0;
 }
 
-
-/*
-int max_chemin_djikstra(adjlist *g,unsigned long u, Visited *visit)
-{
-  int *distances = malloc(g->n * sizeof(int));
-  Visited *v = malloc(sizeof(Visited));
-  v->taille = visit->taille;
-  v->nbNoeudsvisites = visit->nbNoeudsvisites;
-  v->visited = malloc(v->taille * sizeof(unsigned long));
-
-  //Toutes les cases de v->visited a 0 ne font pas partie de la composante connexe
-  //Toutes les cases de v->visited font partie de la composante connexe
-  
-  for(int i=0; i<g->n; i++)
-    {
-      //Case à 2 ne fait pas partie de la composante connexe
-      //case à 0 font partie de la composante connexe mais pas encore visite
-      if(visit->visited[i]==0)
-	v->visited[i]=2;
-      if(visit->visited[i]==1)
-	v->visited[i]=0;
-      distances[i] = g->n; //la distance ne peut pas etre supérieure au nombre de sommet sachant que chaque arête a un poids de 1.
-    }
-
-  distances[u] = 0;
-  //printf("u = %lu\n",u);
-  unsigned long nodeMinDist=-1;
-  int minDistFromU = g->n;
-  //markNode(visit,u);
-  int s = 0;
-  while(s<v->nbNoeudsvisites)//nombre d'elements dans ma composante connexe
-    {
-      if(nodeMinDist==-1)
-	{
-	  nodeMinDist = u;	  
-	}
-      //Déterminer le sommet avec la distance minimale
-      else
-	{
-	  if(allVisited(v))
-	    break;
-	 nodeMinDist = FirstNodeNotVisited(v);
-	}
-      //      printf("Resultat first node not visited : %lu \n",nodeMinDist);
-      minDistFromU = distances[nodeMinDist];
-      //printf("minDistFromU : %d \n",minDistFromU);
-      for(int i=0; i<g->n;i++)
-	{
-	  if(v->visited[i]!=0)
-	    {
-	      //printf("Dans le if visit noeud %lu\n",i);
-	      continue;
-	    }
-	  
-	  if(distances[i]<minDistFromU)
-	    {
-	      minDistFromU = distances[i];
-	      nodeMinDist = (unsigned long) i;
-	    }
-	  //printf("i = %lu\n", i);
-	}
-      
-      //nodeMinDist est le sommet hors de P de plus petite distance
-      /*if(nodeMinDist >10000000)
-	{
-	  printf("le noeuds est énorme \n");
-	  break;
-	  }*/
-      //printf("Noeud de distance minimale : %lu \n",nodeMinDist);
-
-      
-      //On passe en revue tous les voisins 
-      /*
-
-      for(int i=g->cd[nodeMinDist];i<g->cd[nodeMinDist+1];i++)
-	{
-	  unsigned long neighbor = g->adj[i];
- 	  //printf("le neighbor de %lu : %lu\n",nodeMinDist,neighbor);
-	  if(v->visited[neighbor]==0)
-	    {
-	      int tmp = distances[nodeMinDist] + 1;
-	      printf("tmp distance = %d \n", tmp);
-	      if(tmp<distances[neighbor])
-		{
-		  distances[neighbor] = tmp;
-		}
-	    }
-	}
-      //affichage tableau
-      printf("affichage tableau=\n");
-      for(int i=0; i<g->n;i++)
-	{
-	  printf(" %lu|",distances[i]);
-	}
-      printf("Fin tableau //\n");
-      markNode(v,nodeMinDist);
-      s++;
-    }
-
-  int max = 0;
-  for(int i=0; i<g->n; i++)
-    {
-      if(distances[i]>max && distances[i]<g->n)
-	{
-	  max = distances[i];
-	}
-    }
-
-  return max;
-}
-*/

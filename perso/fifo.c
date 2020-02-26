@@ -6,7 +6,7 @@ Fifo* construct_Fifo(adjlist *g)
   Fifo* fifo = malloc(sizeof(Fifo));
   fifo->debut = 0;
   fifo->fin = 0;
-  fifo->fifo = malloc(g->n * sizeof(unsigned long));
+  fifo->fifo = calloc(100000 , sizeof(unsigned long));
   return fifo;
 }
 
