@@ -6,7 +6,7 @@ Fifo* construct_Fifo(adjlist *g)
   Fifo* fifo = malloc(sizeof(Fifo));
   fifo->debut = 0;
   fifo->fin = 0;
-  fifo->fifo = calloc(100000 , sizeof(unsigned long));
+  fifo->fifo = calloc(g->n , sizeof(unsigned long));
   return fifo;
 }
 
@@ -31,4 +31,9 @@ int isEmpty(Fifo* fifo)
       return 0;
     }
   return 1;
+}
+
+void free_fifo(Fifo* fifo){
+  free(fifo->fifo);
+  free(fifo);
 }

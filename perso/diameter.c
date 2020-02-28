@@ -44,17 +44,19 @@ int bfs(adjlist *g, unsigned long s, Visited *visit)
     {
       unsigned long u = pop(f);
 
-      for(int i=g->cd[u]; i<g->cd[u+1]; i++){
-	unsigned long v = g->adj[i];	
-	if(visit->visited[v]==0)
-	  {
-	    add_fifo(f,v);
-	    markNode(visit,v);
-	    tailleComposante++;
-	  }	
-      }
+      for(int i=g->cd[u]; i<g->cd[u+1]; i++)
+	{
+	  unsigned long v = g->adj[i];	
+	  if(visit->visited[v]==0)
+	    {
+	      add_fifo(f,v);
+	      markNode(visit,v);
+	      tailleComposante++;
+	    }	
+	}
       //markNode(visit,u);
     }
+  free_fifo(f);
   //printf("Taille de la composante contenant %lu est %d \n",s,tailleComposante);
   return tailleComposante;
 }
@@ -83,10 +85,11 @@ unsigned long get_random_node(Visited *v)
 
 int diameter(adjlist *g)
 {
-  int lowerBoundDiameter=g->n;
-  // printf("debut find bigger\n");
+  int lowerBoundDiameter=0;
+   printf("debut find bigger\n");
+  
   unsigned long nodeOfMaxComponent = find_bigger_connected_component(g);
-  //printf("fin find bigger\n");
+  printf("fin find bigger\n");
   Visited *visit = malloc(sizeof(Visited));
   visit->taille = g->n;
   visit->nbNoeudsvisites = 0;
@@ -97,7 +100,7 @@ int diameter(adjlist *g)
   
 
   int taille = bfs(g,nodeOfMaxComponent,visit);
-  //printf("taille de notre composante : %d\n",taille);
+  printf("taille de notre composante : %d\n",taille);
   //Tous les sommets de la composante connexe contenant s sont à 1 le reste est à 0
   
   //Ici nous allons utiliser une heuristique particulière car si nous avons une composante connexe unique, en essayant de déterminer une lower bound du diamètre en passant en revue tous les noeuds de la composante va majorer bien trop nos temps de calculs .
@@ -112,18 +115,19 @@ int diameter(adjlist *g)
       
       int tmp = max_chemin(g,u,visit);
       //visit->visited[u] = 2;
-      //printf("u:%lu,taille:%d\n",u,tmp);
-      if(tmp<lowerBoundDiameter)
+      printf("u:%lu,taille:%d\n",u,tmp);
+      if(tmp>lowerBoundDiameter)
 	{
 	  lowerBoundDiameter = tmp;
 	}
+      printf("itération %d finie\n",i);
     }
   
   return lowerBoundDiameter;
 }
 int max_chemin(adjlist *g,unsigned long u, Visited *visit)
 {
-  int *distances = malloc(g->n * sizeof(int));
+  int *distances = calloc(g->n, sizeof(int));
   
   Visited *v = malloc(sizeof(Visited));
   v->taille = visit->taille;
@@ -138,10 +142,10 @@ int max_chemin(adjlist *g,unsigned long u, Visited *visit)
       //Case à 2 ne fait pas partie de la composante connexe
       //case à 0 font partie de la composante connexe mais pas encore visitenn
       if(visit->visited[i]==0)
-	v->visited[i]=2;
+	v->visited[i]=1;
       if(visit->visited[i]==1)
 	v->visited[i]=0;
-      distances[i] = g->n; //la distance ne peut pas etre supérieure au nombre de sommet sachant que chaque arête a un poids de 1.
+      // distances[i] = g->n; //la distance ne peut pas etre supérieure au nombre de sommet sachant que chaque arête a un poids de 1.
     }
   //markNode(v,u);
   distances[u]=0;
@@ -151,39 +155,29 @@ int max_chemin(adjlist *g,unsigned long u, Visited *visit)
   while(isEmpty(f)!=0)
     {
       unsigned long u = pop(f);
-      if(v->visited[u]==1)
-	continue;
+      markNode(v,u);
+    
       for(int i=g->cd[u]; i<g->cd[u+1];i++)
 	{
 
 	  unsigned long neighbor = g->adj[i];
-	  if(v->visited[neighbor]==1)
-	    continue;
-	  if(distances[neighbor] > distances[u]+1)
-		distances[neighbor] = distances[u] + 1;	
+        
 	  if(v->visited[neighbor]==0)
 	    {
 	      add_fifo(f,neighbor);
-	      //markNode(v,neighbor);    
-	    }
-	  
-	}
-           markNode(v,u);
+	      distances[neighbor] = distances[u]+1;
+	      markNode(v,neighbor);    
+	    }	  
+	}           
     }
-  /*
-  printf("Distance tableau \n");
-  for(int i=0; i<g->n; i++)
-    {
-      printf("%lu,",distances[i]);      	
-    }
-
-    printf("fin tableau ===========\n");*/
   int max = 0;
   for(int i=0; i<g->n; i++)
     {
-	if(max<distances[i] && distances[i]<g->n)
+	if(max<distances[i])
 	  max=distances[i];
     }
+  free_fifo(f);
+  free(distances);
   free(v->visited);
   free(v);
   return max;

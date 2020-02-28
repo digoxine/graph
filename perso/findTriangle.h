@@ -14,3 +14,7 @@ void merge(unsigned long* tab, int debut, int pivot, int fin);
 unsigned long max_degree(adjlist *g);
 
 
+void sort_test(adjlist* g);
+
+int sort_verification(adjlist *g);
+

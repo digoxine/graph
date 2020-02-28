@@ -12,5 +12,5 @@ Fifo* construct_Fifo(adjlist *g);
 void add_fifo(Fifo *fifo, unsigned long elem);
 unsigned long pop(Fifo* fifo);
 int isEmpty(Fifo* fifo);
-
+void free_fifo(Fifo* fifo);
 #endif
