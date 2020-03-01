@@ -184,7 +184,6 @@ int max_chemin(adjlist *g,unsigned long u, Visited *visit)
 }
 
 
-
 int main(int argc,char** argv){
   srand(time(NULL));
   

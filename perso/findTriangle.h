@@ -18,3 +18,7 @@ void sort_test(adjlist* g);
 
 int sort_verification(adjlist *g);
 
+
+double transitivity_ratio(adjlist *g);
+
+double clustering_coeff(adjlist *g);
