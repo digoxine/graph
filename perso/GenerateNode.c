@@ -5,8 +5,9 @@
 #include "GenerateNode.h"
 
 #define p 1
-#define q 0.4
+#define q 0.001
 //compute the maximum of three unsigned long
+
 inline unsigned long max3(unsigned long a,unsigned long b,unsigned long c){
 	a=(a>b) ? a : b;
 	return (a>c) ? a : c;
@@ -72,7 +73,7 @@ int checkLabelPropagationEnds(adjmatrix *g, unsigned long *labels, unsigned long
   for(unsigned long i=0; i<g->n; i++)
     {
       
-      if(labels[i]!=highest_frequency(g,i,copy,labels))
+      if(labels[copy[i]]!=highest_frequency(g,copy[i],copy,labels))
 	return 1;
     }
   return 0;
@@ -92,17 +93,17 @@ unsigned long* label_propagation(adjmatrix *g)
   int k=0;
   while(checkLabelPropagationEnds(g,labels,copy)!=0)
     {
-      if(k==1)
-	break;
+      //if(k==20000)
+      //break;
       fisher_yates(copy,g->n);
       for(unsigned long i=0; i<g->n;i++)
 	{
 	  unsigned long actual_node = copy[i];
-	  printf("Actual node : %lu\n",actual_node);
+	  //printf("Actual node : %lu\n",actual_node);
 	  unsigned long nd = highest_frequency(g,actual_node,copy,labels);
 	  //copy[i] = nd;
 	  labels[actual_node] = nd;
-	  display_label(labels,g->n,copy);
+	  //display_label(labels,g->n,copy);
 	}
       
       k++;
@@ -117,34 +118,40 @@ unsigned long highest_frequency(adjmatrix *g, unsigned long u,unsigned long *shu
 {
 
   unsigned long *array = calloc(g->n,sizeof(unsigned long));
-  for(int i=0;i<g->n;i++)
+
+  for(unsigned long i=0;i<g->n;i++)
     {
       //printf("i:%d\n",i);
-      if(/*labels[i]>=labels[u] && g->mat[labels[(int) (u)]*g->n + i]==1*/g->mat[u*g->n+i]==1 && shuffled_array[i]!=u)
+      if(g->mat[u*g->n+i]==1)
 	{
-	  // printf("noeud : %lu labels : %lu\n",i,labels[i]);
+
+	  //printf("noeud : %lu labels : %lu\n",i,labels[i]);
+	  //printf("%lu, ",array[labels[i]]);
 	  array[labels[i]]++ ;
 	}
     }
+
   //printf("Sortie première boucle\n");
   unsigned long max = 0;
   unsigned long max_node=0;
   int already_matched = 1;
   int counter_same_node_max = 1;//Lorsque l'on tombe sur un noeud max déjà rencontré on incrémente 0 déja rencontré
   // print array
-
+  /*
   printf("Affichage array\n");
-  for(int i=0; i<g->n; i++)
+  for(unsigned long i=0; i<g->n; i++)
     {
-      printf("%lu,",array[labels[i]]);
+      printf("On est i = %lu et shuffled_array[i] = %lu labels[si] = %lu\n",i,shuffled_array[i],labels[i] );
+      printf("%lu,",array[i]);
     }
   printf("\n");
-  
+  */
 
-  for(int i=0;i<g->n;i++)
+  for(unsigned long i=0;i<g->n;i++)
     {
 
-      if(array[labels[shuffled_array[i]]]==max)
+      
+      if(array[labels[i]]==max)
 	{
 	  if(already_matched==0)
 	    {
@@ -157,39 +164,46 @@ unsigned long highest_frequency(adjmatrix *g, unsigned long u,unsigned long *shu
 	    }
 	}
       
-      if(array[labels[shuffled_array[i]]]>max)
+      if(array[labels[i]]>max)
 	{
 	  //Réinitialisation des valeurs de comptages
 	  already_matched = 1;
 	  counter_same_node_max = 1;
 	  //printf("Rentre dans le if de la recherche du max\n");
-	  max =  array[labels[shuffled_array[i]]];//array[labels[shuffled_array[i]]];
-	  max_node = shuffled_array[i];	  
+	  max =  array[i];//array[labels[shuffled_array[i]]];
+	  max_node = i;
+	  
 	}
+      
     }
-  /*
+  //printf("counter same node max : %lu already match :%d \n",counter_same_node_max,already_matched);
+  //printf("max node de boucle : %lu max : %lu\n",max_node,max);
+  
   
   if(already_matched==0 && counter_same_node_max>1)
     {
       //printf("Dans le random\n");
       unsigned long rd = rand()%(counter_same_node_max);
       unsigned long k=0;
+      //printf("le random : %lu\n",rd);
       for(unsigned long i=0; i<g->n; i++)
-	{
-	 
-	  if(k>=rd)
-	    {
-	      max_node = labels[i];
-	      break;
-	    }
-      
-	  if(array[shuffled_array[labels[i]]]==max)
-	    k++;
-	}
+	{	  
 
-      }
-  */
+	  if(array[i]==max)
+	    {
+	      if(k==rd)
+		{
+		  max_node = i;
+		  break;
+		}
+	      k++;
+	    }
+	}
+      
+    }
+  
   printf("max node : %lu\n",max_node);
+  
   free(array);
   return max_node;
     
@@ -197,7 +211,7 @@ unsigned long highest_frequency(adjmatrix *g, unsigned long u,unsigned long *shu
 
 unsigned long get_random_node(unsigned long *array, unsigned long max, int counter,int length,unsigned long *labels)
 {
-  printf("le labels : %lu, counter : %d\n",max,counter);
+  //printf("le labels : %lu, counter : %d\n",max,counter);
   unsigned long rd = rand()%(counter);
   unsigned long k=0;
   for(unsigned long i=0; i<length; i++)
@@ -287,6 +301,89 @@ void fisher_yates_double(unsigned long *labels ,unsigned long *shuffled_array, i
       shuffled_array[i] = tmp;      
     }
 }
+/*
+unsigned long *jaccard_label_propagation(adjmatrix *g)
+{
+  unsigned long *labels = calloc(g->n,sizeof(unsigned long));
+  unsigned long intersections = malloc(sizeof(unsigned long));
+  for(unsigned long i=0; i<g->n; i++)
+    {
+      labels[(int)(i)] = i;
+    }
+  int cpt=0
+  for(int i=0; i<g->n; i++)
+    {
+     for(int j=0; j<g->n; j++)
+       {
+	
+       }
+    }
+  
+  int k=0;
+}
+*/
+unsigned long *louvain(adjmatrix *g)
+{
+  unsigned long *labels = calloc(g->n,sizeof(unsigned long));
+  community *communities = calloc(g->n, sizeof(community));
+
+  for(int i=0; i<g->n; i++)
+    {
+      communities[i].nb_nodes = 0;      
+      communities[i].nodes = calloc(g->n, sizeof(unsigned long));
+      labels[(int)(i)] = i;
+    }
+
+  for(unsigned long u=0; i<g->n; i++)
+    {
+      remove_from_community(communities,labels[u]);
+      for(unsigned long i=0; i<g->n; i++)
+	{
+	  for(unsigned long j=i+1; j<g->n; j++)
+	    {
+	      
+	    }
+	}
+    }
+}
+
+
+unsigned long max_quality_community(adjmatrix *g, community *communities)
+{
+  unsigned long ms = 0;
+  double ratio = 0.0;
+  double res_current = 0;
+  double res_max = 0;
+  unsigned long maxCommunity = 0;
+  for(unsigned long commu_iterator = 0; commu_iterator<g->n; commu_iterator++)
+    {
+      
+      community current_community = communities[commu_iterator];
+      
+      for(unsigned long i=0; i<communities[commu_iterator].nb_nodes; i++)
+	{
+	  unsigned long u = communities[current_community].nodes[i];
+	  for(unsigned long v=u+1; v<g->n; v++)
+	    {
+	      //sort
+	      if(g->mat[u*g->n + v]==1)
+		{
+		  ms++:
+		 
+		}
+	    }
+	}
+    }
+}
+
+
+
+
+void remove_from_community(community *communities, unsigned long u)
+{
+  communities[u].nb_nodes --;
+  communities[u].nodes[u]=0;
+}
 
 void display_label(unsigned long *label, int length, unsigned long *shuffled_array)
 {
@@ -306,10 +403,10 @@ int main(int argc, char **argv)
 
   t1=time(NULL);
   
-  printf("Reading edgelist from file %s\n",argv[1]);
-  g = readedgelist(argv[1]);
-  mkmatrix(g);
-  //g=generate_graph_2(6,3);
+  //printf("Reading edgelist from file %s\n",argv[1]);
+  //g = readedgelist(argv[1]);
+  //mkmatrix(g);
+  g=generate_graph_2(10000,6);
   
 
   
@@ -319,6 +416,7 @@ int main(int argc, char **argv)
   printf("Building the adjacency matrix\n");
 
   printf("Affichage tableau des edges\n");
+  
   for(int i=0; i<g->n; i++)
     {
       for(int j=0; j<g->n; j++)
@@ -326,9 +424,9 @@ int main(int argc, char **argv)
 	  if(g->mat[i*g->n +j]==1)
 	    printf("%d %d\n",i,j);
 	}
-	    printf("\n");
+      //printf("\n");
     }
-  
+  printf("\n");
   
   unsigned long *labels = label_propagation(g);
   printf("Affichage tableau\n");
@@ -346,74 +444,4 @@ int main(int argc, char **argv)
   printf("- Overall time = %ldh%ldm%lds\n",(t2-t1)/3600,((t2-t1)%3600)/60,((t2-t1)%60));
 
   return 0;
-}
-
-adjmatrix *generate_graph(int n_nodes, int n_clusters){
-  int e1 = NLINKS;
-  adjmatrix *g = malloc(sizeof(adjmatrix));
-  g->n = 0;
-  g->e = 0;
-  g->edges = calloc(e1 , sizeof(edge));
-  //g->mat = malloc(sizeof(bool)*g->n*g->n);
-  //unsigned long *array_nodes = calloc(g->n,sizeof(unsigned long));
-  /*
-  for(unsigned long i=0; i<g->n; i++)
-    {
-      array_nodes[i] = i;
-      }*/ 
-  for(unsigned long i=0; i<n_nodes; i++)
-    {
-      int cluster_1 = (int) (i/(n_nodes/n_clusters));
-      
-      for(unsigned long j=i; j<n_nodes;j++)
-	{
-	  if(i==j)
-	    continue;
-	  int cluster_2 = (int) ( ((double)(j))/((double)(n_nodes/n_clusters)) );
-	  printf("i: %d j: %d cluster 1 : %d cluster 2 : %d\n",i,j,cluster_1,cluster_2);
-	  float ra = (float) ((rand()%100)/100.0);
-	  if(cluster_1 == cluster_2)
-	    {
-	      if(ra<p)
-		{//Création de l'arête entre deux noeuds du même cluster
-		  g->edges[g->e].s = i;
-		  g->edges[g->e].t = j;
-		  g->n=max3(g->n,g->edges[g->e].s,g->edges[g->e].t);
-		  if (++(g->e)==e1) {//increase allocated RAM if needed
-		    e1+=NLINKS;
-		    g->edges=realloc(g->edges,e1*sizeof(edge));
-		  }
-		  g->e++;
-		}
-	     
-	    }
-	  else
-	    {
-	      if(ra<q)
-		{//liaison avec un noeud d'un cluster avec un cluster different
-		  
-		  g->edges[g->e].s = i;
-		  g->edges[g->e].t = j;
-		  g->n=max3(g->n,g->edges[g->e].s,g->edges[g->e].t);
-		  if (++(g->e)==e1) {//increase allocated RAM if needed
-		    e1+=NLINKS;
-		    g->edges=realloc(g->edges,e1*sizeof(edge));
-		  }
-		  g->e++;		  
-		}
-
-	    }
-	  
-	}
-    }
-  printf("apres boucle\n");
-  g->edges=realloc(g->edges,g->e*sizeof(edge));
-  g->n++;
-  printf("taille %lu \n",g->n);
-  printf("affichage tableau edges\n");
-  for(int i=0; i<g->n;i++)
-    {
-      printf("%lu,%lu\n",g->edges[i].s,g->edges[i].t);
-    }
-  return g;
 }
