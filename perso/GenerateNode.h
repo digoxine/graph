@@ -1,38 +1,58 @@
 #include "adjmatrix.h"
 
 typedef struct {
-  unsigned long nb_nodes;
-  unsigned long *nodes;  
-} community;
+  unsigned long *tas;
+  int taille;
+  int pointer;
+}Community_heap;
 	       
 
 void fisher_yates(unsigned long *array, int length);
+
 unsigned long* label_propagation(adjmatrix *g);
-adjmatrix* fisher_yates_adj(adjmatrix *g);
+
 unsigned long highest_frequency(adjmatrix *g, unsigned long u, unsigned long *labels, unsigned long *shuffled_array);
 
 //Check if each node have the highest frequency among its neighbours
 int checkLabelPropagationEnds(adjmatrix *g, unsigned long *labels,unsigned long *copy);
 
-void mergeSort(unsigned long *array, int l, int r);
-void merge(unsigned long *array, int debut,int pivot, int fin);
 unsigned long get_random_node(unsigned long *array, unsigned long max, int counter, int length,unsigned long *labels);
 
 adjmatrix *generate_graph_2(int n_nodes, int n_clusters);
 
 
-//void shuffle_matrix(adjlist *g);
 void display_label(unsigned long *label,int length,unsigned long *shuffled_array);
 
-void fisher_yates_double(unsigned long *labels,unsigned long *shuffled_array, int length);
 
-//unsigned long *jaccard_label_propagation(adjmatrix *g, unsigned long *labels);
+Community_heap *construct_min_heap(adjmatrix *g);
 
-//unsigned long intersection(unsigned long *array,unsigned long vi, unsigned long vj);
-
-unsigned long *louvain(adjmatrix *g);
+//Nous n'ajouterons jamais aucune communauté nous ne ferons qu'en supprimer donc pas d'ajout
 
 
-void remove_from_community(community *communities, unsigned long u);
+//Lorsqu'une communauté n'aura plus aucun noeud nous la supprimerons
+void remove_community(Community_heap *cp, unsigned long community);
 
-unsigned long max_quality_community(adjmatrix *g, community *communities);
+
+//swap deux elements du tas
+void swap(Community_heap *cp, unsigned long index1, unsigned long index2);
+
+//recherche une index d'une communauté dans le tas
+int research_heap(Community_heap *cp,unsigned long community);
+
+//La propagation de Louvain
+int *label_propagation_louvain(adjmatrix *g);
+
+//Renvoie le nombre de noeuds internes à une communauté renvoie 0
+//si il n'y en a pas cela veut dire que la communauté doit être supprimé à tester pour la supprimer du tas
+unsigned long get_number_intern_nodes(adjmatrix *g, int community, int *nodes_communities);
+
+
+//Retourne le degré sortant d'un noeud
+unsigned long get_out_degree_node(adjmatrix *g, unsigned long node);
+
+//Retourne
+unsigned long get_out_degree_community(adjmatrix *g, int *nodes_communities, int community);
+
+
+//Retourne 1 si la communauté est vide
+int check_empty_community(int *nodes_communities, int community, int length);

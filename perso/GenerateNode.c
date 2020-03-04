@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+#include <math.h>
 #include <stdbool.h>
 #include "GenerateNode.h"
 
@@ -89,7 +91,7 @@ unsigned long* label_propagation(adjmatrix *g)
       copy[i] = i;
     }
 
-  //fisher_yates(copy,g->n);
+  
   int k=0;
   while(checkLabelPropagationEnds(g,labels,copy)!=0)
     {
@@ -226,164 +228,6 @@ unsigned long get_random_node(unsigned long *array, unsigned long max, int count
   return -1;
 }
 
-void mergeSort(unsigned long *array, int l, int r)
-{
-  if(l<r)
-    {
-      int m = l + (r-l)/2;
-      mergeSort(array,l,m);
-      mergeSort(array,m+1,r);
-      merge(array,l,m,r);
-    }
-  
-}
-
-void merge(unsigned long *array, int debut,int pivot, int fin)
-{
-  int i,j,k;
-  int n1 = pivot - debut + 1;
-  int n2 = fin-pivot;
-  int *L = calloc(n1,sizeof(int));
-  int *R = calloc(n2,sizeof(int));
-  for(i=0;i<n1;i++)
-    {
-      L[i] = array[debut+i];      
-    }
-  for(j=0; j<n2; j++)
-    {
-      R[j] = array[pivot+1+j];
-    }
-  i = 0;
-  j = 0;
-  k = debut;
-  while(i<n1 && j<n2)
-    {
-      if(L[i]<=R[i])
-	{
-	  array[k] = R[j];
-	  i++;
-	}
-      else
-	{
-	  array[k] = L[i];
-	  j++;
-	}
-      k++;
-    }
-  while(i<n1)
-    {
-      array[k] = L[i];
-      k++;
-      i++;
-    }
-  while(j<n2)
-    {
-      array[k] = R[j];
-      k++;
-      j++;
-    }
-  
-  
-}
-
-void fisher_yates_double(unsigned long *labels ,unsigned long *shuffled_array, int length)
-{
-  int r;
-  unsigned long tmp;
-  for(int i=1; i<length;i++)
-    {
-      r = (int) (rand()%i);
-      tmp = labels[r];
-      labels[r] = labels[i];
-      labels[i] = tmp;
-      tmp = shuffled_array[r];
-      shuffled_array[r] = shuffled_array[i];
-      shuffled_array[i] = tmp;      
-    }
-}
-/*
-unsigned long *jaccard_label_propagation(adjmatrix *g)
-{
-  unsigned long *labels = calloc(g->n,sizeof(unsigned long));
-  unsigned long intersections = malloc(sizeof(unsigned long));
-  for(unsigned long i=0; i<g->n; i++)
-    {
-      labels[(int)(i)] = i;
-    }
-  int cpt=0
-  for(int i=0; i<g->n; i++)
-    {
-     for(int j=0; j<g->n; j++)
-       {
-	
-       }
-    }
-  
-  int k=0;
-}
-*/
-unsigned long *louvain(adjmatrix *g)
-{
-  unsigned long *labels = calloc(g->n,sizeof(unsigned long));
-  community *communities = calloc(g->n, sizeof(community));
-
-  for(int i=0; i<g->n; i++)
-    {
-      communities[i].nb_nodes = 0;      
-      communities[i].nodes = calloc(g->n, sizeof(unsigned long));
-      labels[(int)(i)] = i;
-    }
-
-  for(unsigned long u=0; i<g->n; i++)
-    {
-      remove_from_community(communities,labels[u]);
-      for(unsigned long i=0; i<g->n; i++)
-	{
-	  for(unsigned long j=i+1; j<g->n; j++)
-	    {
-	      
-	    }
-	}
-    }
-}
-
-
-unsigned long max_quality_community(adjmatrix *g, community *communities)
-{
-  unsigned long ms = 0;
-  double ratio = 0.0;
-  double res_current = 0;
-  double res_max = 0;
-  unsigned long maxCommunity = 0;
-  for(unsigned long commu_iterator = 0; commu_iterator<g->n; commu_iterator++)
-    {
-      
-      community current_community = communities[commu_iterator];
-      
-      for(unsigned long i=0; i<communities[commu_iterator].nb_nodes; i++)
-	{
-	  unsigned long u = communities[current_community].nodes[i];
-	  for(unsigned long v=u+1; v<g->n; v++)
-	    {
-	      //sort
-	      if(g->mat[u*g->n + v]==1)
-		{
-		  ms++:
-		 
-		}
-	    }
-	}
-    }
-}
-
-
-
-
-void remove_from_community(community *communities, unsigned long u)
-{
-  communities[u].nb_nodes --;
-  communities[u].nodes[u]=0;
-}
 
 void display_label(unsigned long *label, int length, unsigned long *shuffled_array)
 {
@@ -394,6 +238,243 @@ void display_label(unsigned long *label, int length, unsigned long *shuffled_arr
     }
   printf("\n");
 }
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////// Implémentation de la label propagation Louvain //////////////////////////
+
+
+
+
+
+
+///////////////////////// Opérations sur les tas de communautés ///////////////////////////
+
+Community_heap *construct_min_heap(adjmatrix *g)
+{
+  //Nous créons toutes les communautés Chaque noeud est une communauté au départ
+  Community_heap *existing_communities = malloc(sizeof(Community_heap));
+  existing_communities->taille = g->n;
+  existing_communities->pointer = g->n;
+  existing_communities->tas = calloc(g->n,sizeof(unsigned long));
+  for(unsigned long i=0; i<existing_communities->taille;i++)
+    {
+      existing_communities->tas[i] = i;
+    }
+  return existing_communities;
+}
+
+
+void remove_community(Community_heap *cp, unsigned long community)
+{
+
+  int index = research_heap(cp,community);
+  if(index==0)
+    return;
+  if(index<0)
+    printf("communauté pas dans le tas\n");
+
+  for(unsigned long i=index; i<cp->pointer-1;i++)
+    {
+      swap(cp,i,i+1);      
+    }
+  cp->pointer--;
+}
+
+int research_heap(Community_heap *cp,unsigned long community)
+{
+  for(int i=0; i<cp->pointer;i++)
+    {
+      if(cp->tas[i] == community)
+	return i;
+    }
+  return -1;
+}
+  
+void swap(Community_heap *cp, unsigned long index1, unsigned long index2)
+{
+  unsigned long tmp = cp->tas[index1];
+  cp->tas[index1] = cp->tas[index2];
+  cp->tas[index2] = tmp;
+}
+
+
+
+///////////////////////// Fin opérations sur les tas de communautés ///////////////////////////
+
+
+
+
+int *label_propagation_louvain(adjmatrix *g)
+{
+  //Initialisation
+  //nodes_communities    
+  int *nodes_communities = calloc(g->n,sizeof(int));
+  Community_heap *communities_heap = construct_min_heap(g);
+  int current_community = -1;
+  double current_quality = 0;
+  double max_quality = 0;
+  int best_community= -1;
+  unsigned long nb_internal_nodes = 0;
+  unsigned long nb_out_degree = 0;
+  
+  for(int i=0; i<g->n; i++)
+    {
+      nodes_communities[i] = i;
+    }
+
+  
+  //iteration sur les noeuds
+  for(unsigned long u=0; u<g->n; u++)
+    {
+      //nous n'iterons pas sur ce sur quoi on supprime
+      //copie      
+      Community_heap *copy_iterator = malloc(sizeof(Community_heap));
+      copy_iterator->taille = communities_heap->taille;
+      copy_iterator->pointer = communities_heap->pointer;
+      //pas sure que ća marche peut-être doit on malloc avant memcpy
+      copy_iterator->tas = calloc(g->n, sizeof(unsigned long));
+      memcpy(copy_iterator->tas,communities_heap->tas, sizeof(unsigned long) * g->n);
+
+
+      //affichage vérification de la maj des communautés
+      printf("Affichage tableau communautés après memcpy \n");
+      for(int i=0; i<copy_iterator->pointer; i++)
+	printf("%lu, ",copy_iterator->tas[i]);
+      printf("\nFin affichage tableau communautés copié\n");
+
+
+      
+      //Reinitialisation
+      current_quality = 0;
+      max_quality = 0;
+      best_community = -1;
+
+      //save previous community
+      int previous_community = nodes_communities[u];
+      //remove from community      
+      //On note -1 quand un noeud u n'a pas de communauté      
+      nodes_communities[u]=-1;
+
+      
+      //Itération sur les communautés
+      for(unsigned long i=0; i<copy_iterator->pointer; i++)
+	{
+	  current_community = copy_iterator->tas[i];
+	  nb_internal_nodes = get_number_intern_nodes(g, current_community, nodes_communities);
+	  nb_out_degree = get_out_degree_community(g, nodes_communities, current_community);
+
+	  //Communauté vide on la supprime et on recommence une itération	  
+	  if(check_empty_community(nodes_communities, current_community, g->n))	    
+	  {
+	    remove_community(communities_heap,current_community);
+	    continue;
+	  }
+
+	  
+	  //calcul qualité
+	  current_quality = nb_internal_nodes -  (pow(nb_out_degree,2)/ ( 4 * g->e )) ;
+	  current_quality = current_quality/g->e;
+
+	  //debug qualite
+	  printf("qualité : %lf u: %lu community : %d\n",current_quality, u, current_community);
+	  
+	  //maj qualité
+	  if(current_quality>max_quality)
+	    {
+	      best_community = current_community;
+	      max_quality = current_quality;
+	    }	  
+	}
+      if(best_community==-1)
+	{
+	  printf("Il n'existe pas de communautés \n");
+	  nodes_communities[u]=previous_community;
+	}
+      nodes_communities[u] = best_community;
+      
+      free(copy_iterator->tas);
+      free(copy_iterator);
+      
+    }
+  free(communities_heap->tas);
+  free(communities_heap);
+  return nodes_communities;
+  
+}
+
+
+int check_empty_community(int *nodes_communities, int community, int length)
+{
+  for(int i=0; i<length; i++)
+    {
+      if(nodes_communities[i] == community)
+	return 0;
+    }
+  return 1;
+}
+
+
+
+//ToDo peut-être qu'il y a une erreur sur le calcul de la modularité
+
+
+
+
+
+unsigned long get_number_intern_nodes(adjmatrix *g, int community, int *nodes_communities)
+{
+  //si il retourne 0 il faudra supprimer cette communauté du tas
+  unsigned long nb_inter_nodes = 0;
+  //On parcourt tous les noeuds et comme ils sont triés on peut se restreindre aux noeuds plus grands.
+  //Nous sommes sûr qu'il n'y aura pas d'arêtes comptées deux fois
+  for(int i=0; i<g->n; i++)
+    {
+      for(int j=i+1; j<g->n; j++)
+	{
+	  if(g->mat[i*g->n + j]==1 && nodes_communities[i]==community && nodes_communities[j]==community)
+	    {
+	      nb_inter_nodes++;
+	    }	    
+	}
+    }
+  return nb_inter_nodes;
+}
+
+
+unsigned long get_out_degree_node(adjmatrix *g, unsigned long node)
+{
+  unsigned long nb_out_degree = 0;
+  for(unsigned long i=node; i<g->n; i++)
+    {
+      if(g->mat[node*g->n + i] ==1)
+	nb_out_degree++;
+    }
+  return nb_out_degree;
+}
+
+
+unsigned long get_out_degree_community(adjmatrix *g, int *nodes_communities, int community)
+{
+  unsigned long nb_out_degrees_community = 0;
+  for(unsigned long i=0; i<g->n; i++)
+    {
+      if(nodes_communities[i]==community)
+	nb_out_degrees_community+=get_out_degree_node(g,i);
+    }
+  return nb_out_degrees_community;
+}
+
+
+
 
 int main(int argc, char **argv)
 {
@@ -406,7 +487,7 @@ int main(int argc, char **argv)
   //printf("Reading edgelist from file %s\n",argv[1]);
   //g = readedgelist(argv[1]);
   //mkmatrix(g);
-  g=generate_graph_2(10000,6);
+  g=generate_graph_2(8,2);
   
 
   
@@ -416,7 +497,7 @@ int main(int argc, char **argv)
   printf("Building the adjacency matrix\n");
 
   printf("Affichage tableau des edges\n");
-  
+  /*
   for(int i=0; i<g->n; i++)
     {
       for(int j=0; j<g->n; j++)
@@ -427,13 +508,14 @@ int main(int argc, char **argv)
       //printf("\n");
     }
   printf("\n");
-  
-  unsigned long *labels = label_propagation(g);
+  */
+  //unsigned long *labels = label_propagation(g);
+  int *labels = label_propagation_louvain(g);
   printf("Affichage tableau\n");
   
   for(int i=0;i<g->n;i++)
     {
-      printf("%lu,",labels[i]);      
+      printf("%d,",labels[i]);      
     }
     printf("\n____________\n");
   
