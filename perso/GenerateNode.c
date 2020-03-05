@@ -7,7 +7,7 @@
 #include "GenerateNode.h"
 
 #define p 1
-#define q 0.001
+#define q 0.00
 //compute the maximum of three unsigned long
 
 inline unsigned long max3(unsigned long a,unsigned long b,unsigned long c){
@@ -277,8 +277,6 @@ void remove_community(Community_heap *cp, unsigned long community)
 {
 
   int index = research_heap(cp,community);
-  if(index==0)
-    return;
   if(index<0)
     printf("communauté pas dans le tas\n");
 
@@ -315,8 +313,7 @@ void swap(Community_heap *cp, unsigned long index1, unsigned long index2)
 
 int *label_propagation_louvain(adjmatrix *g)
 {
-  //Initialisation
-  //nodes_communities    
+
   int *nodes_communities = calloc(g->n,sizeof(int));
   Community_heap *communities_heap = construct_min_heap(g);
   int current_community = -1;
@@ -325,86 +322,110 @@ int *label_propagation_louvain(adjmatrix *g)
   int best_community= -1;
   unsigned long nb_internal_nodes = 0;
   unsigned long nb_out_degree = 0;
-  
-  for(int i=0; i<g->n; i++)
+  //  unsigned long k=0;
+  unsigned long previous_number_communities = 0;
+  unsigned long current_number_communities = g->n;
+
+  //Initialisation
+  //nodes_communities    
+  for(unsigned long i=0; i<g->n; i++)
     {
       nodes_communities[i] = i;
     }
 
-  
-  //iteration sur les noeuds
-  for(unsigned long u=0; u<g->n; u++)
+
+  while(previous_number_communities!=current_number_communities)
     {
-      //nous n'iterons pas sur ce sur quoi on supprime
-      //copie      
-      Community_heap *copy_iterator = malloc(sizeof(Community_heap));
-      copy_iterator->taille = communities_heap->taille;
-      copy_iterator->pointer = communities_heap->pointer;
-      //pas sure que ća marche peut-être doit on malloc avant memcpy
-      copy_iterator->tas = calloc(g->n, sizeof(unsigned long));
-      memcpy(copy_iterator->tas,communities_heap->tas, sizeof(unsigned long) * g->n);
 
-
-      //affichage vérification de la maj des communautés
-      printf("Affichage tableau communautés après memcpy \n");
-      for(int i=0; i<copy_iterator->pointer; i++)
-	printf("%lu, ",copy_iterator->tas[i]);
-      printf("\nFin affichage tableau communautés copié\n");
-
-
-      
-      //Reinitialisation
-      current_quality = 0;
-      max_quality = 0;
-      best_community = -1;
-
-      //save previous community
-      int previous_community = nodes_communities[u];
-      //remove from community      
-      //On note -1 quand un noeud u n'a pas de communauté      
-      nodes_communities[u]=-1;
-
-      
-      //Itération sur les communautés
-      for(unsigned long i=0; i<copy_iterator->pointer; i++)
+      //iteration sur les noeuds
+      for(unsigned long u=0; u<g->n; u++)
 	{
-	  current_community = copy_iterator->tas[i];
-	  nb_internal_nodes = get_number_intern_nodes(g, current_community, nodes_communities);
-	  nb_out_degree = get_out_degree_community(g, nodes_communities, current_community);
-
-	  //Communauté vide on la supprime et on recommence une itération	  
-	  if(check_empty_community(nodes_communities, current_community, g->n))	    
-	  {
-	    remove_community(communities_heap,current_community);
-	    continue;
-	  }
-
+	  //nous n'iterons pas sur ce sur quoi on supprime
+	  //copie
 	  
-	  //calcul qualité
-	  current_quality = nb_internal_nodes -  (pow(nb_out_degree,2)/ ( 4 * g->e )) ;
-	  current_quality = current_quality/g->e;
+	  Community_heap *copy_iterator = malloc(sizeof(Community_heap));
+	  copy_iterator->taille = communities_heap->taille;
+	  copy_iterator->pointer = communities_heap->pointer;
+	  //pas sure que ća marche peut-être doit on malloc avant memcpy
+	  copy_iterator->tas = calloc(g->n, sizeof(unsigned long));
+	  memcpy(copy_iterator->tas,communities_heap->tas, sizeof(unsigned long) * g->n);
 
-	  //debug qualite
-	  printf("qualité : %lf u: %lu community : %d\n",current_quality, u, current_community);
+	  //affichage vérification de la maj des communautés
+	  /*
+	   printf("Affichage tableau communautés après memcpy \n");
+	  for(int i=0; i<copy_iterator->pointer; i++)
+	  printf("%lu, ",copy_iterator->tas[i]);
+	  printf("\nFin affichage tableau communautés copié\n");
+	  */
+
+      
+	  //Reinitialisation
+	  current_quality = 0;
+	  max_quality = 0;
+	  best_community = -1;
+
+
+	  int previous_community = nodes_communities[u];
+	  //remove from community      
+	  //On note -1 quand un noeud u n'a pas de communauté      
+	  nodes_communities[u]=-1;
 	  
-	  //maj qualité
-	  if(current_quality>max_quality)
+      
+	  //Itération sur les communautés
+	  for(unsigned long i=0; i<copy_iterator->pointer; i++)
 	    {
-	      best_community = current_community;
-	      max_quality = current_quality;
-	    }	  
-	}
-      if(best_community==-1)
-	{
-	  printf("Il n'existe pas de communautés \n");
-	  nodes_communities[u]=previous_community;
-	}
-      nodes_communities[u] = best_community;
+	      
+	      current_community = copy_iterator->tas[i];
+
+	      if(previous_community==current_community && check_empty_community(nodes_communities, current_community, g->n)==1)
+		{
+		  remove_community(communities_heap,current_community);
+		  continue;
+		}
+	      
+	      //printf("current_community : %d\n",current_community);
+	      //Nous insérons le noeud dans la communauté que l'on étudie
+	      nodes_communities[u] = current_community;
+	      
+	      //Communauté vide on la supprime et on recommence une itération	  
+	      if(check_empty_community(nodes_communities, current_community, g->n)==1)	    
+		{
+		  printf("la communauté %u est vide \n",current_community);
+		  remove_community(communities_heap,current_community);
+		  //remove_community(copy_iterator,current_community);
+		  //i--;
+		  display_communities(communities_heap);
+		  continue;
+		}
+
+	      current_quality = compute_quality(g,nodes_communities,current_community);	  
+	      //debug qualite
+	      //printf("qualité : %lf u: %lu community : %d\n",current_quality, u, current_community);
+	  
+	      //maj qualité
+
+	      if(current_quality>max_quality)
+		{
+		  best_community = current_community;
+		  max_quality = current_quality;		  
+		}	      
+	      nodes_communities[u] = -1;
+	    }
+	  
+	  nodes_communities[u] = best_community;
+	  
+	  free(copy_iterator->tas);
+	  free(copy_iterator);	  
       
-      free(copy_iterator->tas);
-      free(copy_iterator);
-      
+	}
+      printf("nombre de communautés : %lu nombre de communautés previous : %lu \n",current_number_communities,previous_number_communities);
+      previous_number_communities = current_number_communities;
+      current_number_communities = communities_heap->pointer;
+      //k++;
+      break;
     }
+
+  
   free(communities_heap->tas);
   free(communities_heap);
   return nodes_communities;
@@ -422,6 +443,15 @@ int check_empty_community(int *nodes_communities, int community, int length)
   return 1;
 }
 
+
+
+void display_communities(Community_heap *cp)
+{
+  printf("display communities array\n");
+  for(int i=0; i<cp->pointer; i++)
+    printf("%lu, ",cp->tas[i]);
+  printf("\n");
+}
 
 
 //ToDo peut-être qu'il y a une erreur sur le calcul de la modularité
@@ -475,6 +505,28 @@ unsigned long get_out_degree_community(adjmatrix *g, int *nodes_communities, int
 
 
 
+double compute_quality(adjmatrix *g, int *nodes_communities, int community)
+{
+  double quality = 0;
+  double kv = 0;
+  double kw = 0;
+  double sv = 0;
+  double sw = 0;
+  for(unsigned long v=0; v<g->n; v++)
+    {
+      for(unsigned long w=v+1; w<g->n; w++)
+	{
+	  sv = nodes_communities[v]==community?1.0:-1.0;
+	  sw = nodes_communities[w]==community?1.0:-1.0;
+	  kv = (double) (get_out_degree_node(g,v));
+	  kw = (double) (get_out_degree_node(g,w));
+	  quality += (double) ( g->mat[v*g->n+w] - (double) ( (kv*kw)/(g->e *2)) ) * (( (sv*sw) + 1 )/2) ;
+	}
+    }
+  return quality;
+}
+
+
 
 int main(int argc, char **argv)
 {
@@ -487,7 +539,7 @@ int main(int argc, char **argv)
   //printf("Reading edgelist from file %s\n",argv[1]);
   //g = readedgelist(argv[1]);
   //mkmatrix(g);
-  g=generate_graph_2(8,2);
+  g=generate_graph_2(12,4);
   
 
   

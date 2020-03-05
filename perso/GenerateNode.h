@@ -56,3 +56,10 @@ unsigned long get_out_degree_community(adjmatrix *g, int *nodes_communities, int
 
 //Retourne 1 si la communauté est vide
 int check_empty_community(int *nodes_communities, int community, int length);
+
+//Compute quality of community
+double compute_quality(adjmatrix *g, int *nodes_communities, int community);
+
+
+//display communities
+void display_communities(Community_heap *cp);
