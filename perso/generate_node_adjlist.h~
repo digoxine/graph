@@ -1,4 +1,5 @@
-#include "adjmatrix.h"
+#include "adjarray.h"
+
 
 typedef struct {
   unsigned long *tas;
@@ -18,7 +19,7 @@ int checkLabelPropagationEnds(adjmatrix *g, unsigned long *labels,unsigned long 
 
 unsigned long get_random_node(unsigned long *array, unsigned long max, int counter, int length,unsigned long *labels);
 
-adjmatrix *generate_graph_2(int n_nodes, int n_clusters);
+adjlist *generate_graph(int n_nodes, int n_clusters);
 
 
 void display_label(unsigned long *label,int length,unsigned long *shuffled_array);
@@ -57,14 +58,8 @@ unsigned long get_out_degree_community(adjmatrix *g, int *nodes_communities, int
 //Retourne 1 si la communauté est vide
 int check_empty_community(int *nodes_communities, int community, int length);
 
-//Compute quality of community
-double compute_quality(adjmatrix *g, int *nodes_communities, int community);
 
 
-//display communities
-void display_communities(Community_heap *cp);
-
-double compute_quality_2(adjmatrix *g, int *nodes_communities, Community_heap *communities_heap);
 
 double compute_quality_3(adjmatrix *g, int *nodes_communities, Community_heap *cp, unsigned long *degres, unsigned long *ms);
 

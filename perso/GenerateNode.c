@@ -6,8 +6,8 @@
 #include <stdbool.h>
 #include "GenerateNode.h"
 
-#define p 1
-#define q 0.00
+#define p 0.2
+#define q 0.0001
 //compute the maximum of three unsigned long
 
 inline unsigned long max3(unsigned long a,unsigned long b,unsigned long c){
@@ -315,22 +315,23 @@ int *label_propagation_louvain(adjmatrix *g)
 {
 
   int *nodes_communities = calloc(g->n,sizeof(int));
+  unsigned long *degres = calloc(g->n, sizeof(unsigned long));
   Community_heap *communities_heap = construct_min_heap(g);
   int current_community = -1;
   double current_quality = 0;
   double max_quality = 0;
   int best_community= -1;
-  unsigned long nb_internal_nodes = 0;
-  unsigned long nb_out_degree = 0;
-  //  unsigned long k=0;
   unsigned long previous_number_communities = 0;
   unsigned long current_number_communities = g->n;
-
+  unsigned long cpt_same_max_node = 0;
+  unsigned long *same_node_max = calloc(g->n,sizeof(unsigned long));
+  unsigned long *ms = calloc(g->n,sizeof(unsigned long));
   //Initialisation
   //nodes_communities    
   for(unsigned long i=0; i<g->n; i++)
     {
       nodes_communities[i] = i;
+      degres[i] = get_out_degree_node(g,i);
     }
 
 
@@ -340,96 +341,102 @@ int *label_propagation_louvain(adjmatrix *g)
       //iteration sur les noeuds
       for(unsigned long u=0; u<g->n; u++)
 	{
-	  //nous n'iterons pas sur ce sur quoi on supprime
-	  //copie
-	  
-	  Community_heap *copy_iterator = malloc(sizeof(Community_heap));
-	  copy_iterator->taille = communities_heap->taille;
-	  copy_iterator->pointer = communities_heap->pointer;
-	  //pas sure que ća marche peut-être doit on malloc avant memcpy
-	  copy_iterator->tas = calloc(g->n, sizeof(unsigned long));
-	  memcpy(copy_iterator->tas,communities_heap->tas, sizeof(unsigned long) * g->n);
-
-	  //affichage vérification de la maj des communautés
-	  /*
-	   printf("Affichage tableau communautés après memcpy \n");
-	  for(int i=0; i<copy_iterator->pointer; i++)
-	  printf("%lu, ",copy_iterator->tas[i]);
-	  printf("\nFin affichage tableau communautés copié\n");
-	  */
-
-      
 	  //Reinitialisation
 	  current_quality = 0;
 	  max_quality = 0;
 	  best_community = -1;
 
-
 	  int previous_community = nodes_communities[u];
+
+	  remove_inner_degrees(g,nodes_communities,u,previous_community,ms);
+	  printf("u : %lu\n",u);
+
 	  //remove from community      
 	  //On note -1 quand un noeud u n'a pas de communauté      
-	  nodes_communities[u]=-1;
-	  
+	  //nodes_communities[u]=-1;	  
       
 	  //Itération sur les communautés
-	  for(unsigned long i=0; i<copy_iterator->pointer; i++)
+	  for(unsigned long i=0; i<communities_heap->pointer; i++)//
 	    {
-	      
-	      current_community = copy_iterator->tas[i];
 
-	      if(previous_community==current_community && check_empty_community(nodes_communities, current_community, g->n)==1)
+	      current_community = communities_heap->tas[i];
+	      //remove_inner_degrees(g,nodes_communities,u,current_community,ms);
+	      //printf("avant check_community \n");
+	      if(check_empty_community(nodes_communities, current_community, g->n)==1)
 		{
 		  remove_community(communities_heap,current_community);
+		  i--;
 		  continue;
 		}
 	      
-	      //printf("current_community : %d\n",current_community);
+	      //remove_inner_degrees(g,nodes_communities,u,previous_community,ms);
 	      //Nous insérons le noeud dans la communauté que l'on étudie
 	      nodes_communities[u] = current_community;
+	      //On met à jour les inner degrees
+	      update_inner_degrees(g, nodes_communities,u,current_community,ms);
 	      
-	      //Communauté vide on la supprime et on recommence une itération	  
-	      if(check_empty_community(nodes_communities, current_community, g->n)==1)	    
-		{
-		  printf("la communauté %u est vide \n",current_community);
-		  remove_community(communities_heap,current_community);
-		  //remove_community(copy_iterator,current_community);
-		  //i--;
-		  display_communities(communities_heap);
-		  continue;
-		}
-
-	      current_quality = compute_quality(g,nodes_communities,current_community);	  
+	      current_quality = compute_quality_3(g,nodes_communities,communities_heap,degres,ms);
+	      //printf("apres le quality itération %d\n",current_community);
 	      //debug qualite
 	      //printf("qualité : %lf u: %lu community : %d\n",current_quality, u, current_community);
 	  
 	      //maj qualité
-
+	      
+	      if(current_quality==max_quality)
+		{
+		  //if(cpt_same_max_node==1)
+		    //cpt_same_max_node = 2;
+		  //printf("cpt same node : %lu\n",cpt_same_max_node);
+		  cpt_same_max_node++;
+		  
+		  same_node_max[cpt_same_max_node] = current_community;
+		}
+	      
 	      if(current_quality>max_quality)
 		{
+		  cpt_same_max_node = 0;
+		  same_node_max[cpt_same_max_node] = current_community;
 		  best_community = current_community;
-		  max_quality = current_quality;		  
+		  max_quality = current_quality;
+		  //cpt_same_max_node += 2;
 		}	      
-	      nodes_communities[u] = -1;
+	      //display_ms(ms,g->n);
+	      //On supprime les inner degrees 
+	      remove_inner_degrees(g,nodes_communities,u,current_community,ms);
+	      //nodes_communities[u] = -1;
 	    }
 	  
+	  if(cpt_same_max_node>0)
+	    {
+	      int r = rand()%(cpt_same_max_node+1);
+	      //printf("random : %d\n",r);
+	      best_community = same_node_max[r];
+
+	    }
 	  nodes_communities[u] = best_community;
-	  
-	  free(copy_iterator->tas);
-	  free(copy_iterator);	  
-      
+	  //On met à jour les inner degrees
+	  update_inner_degrees(g,nodes_communities,u,best_community,ms);
 	}
       printf("nombre de communautés : %lu nombre de communautés previous : %lu \n",current_number_communities,previous_number_communities);
       previous_number_communities = current_number_communities;
       current_number_communities = communities_heap->pointer;
-      //k++;
-      break;
     }
-
   
   free(communities_heap->tas);
   free(communities_heap);
+  free(same_node_max);
+  free(ms);
   return nodes_communities;
   
+}
+
+
+void display_ms(unsigned long *ms, int length)
+{
+  printf("Affichage du tableau ms \n");
+  for(int i=0; i<length; i++)
+    printf("%lu, ",ms[i]);
+  printf("\nFin tableau\n");
 }
 
 
@@ -527,6 +534,80 @@ double compute_quality(adjmatrix *g, int *nodes_communities, int community)
 }
 
 
+double compute_quality_2(adjmatrix *g, int *nodes_communities, Community_heap *cp)
+{
+  double res = 0.0;
+  double temp = 0.0;
+  for(unsigned long u = 0; u<g->n; u++)
+    {
+      for(unsigned long w = u+1; w<g->n; w++)
+	{
+	  if(nodes_communities[u] == nodes_communities[w])
+	    {
+	      temp=0;
+	      temp = (double) ( g->mat[u*g->n + w]/(2*g->e) );
+	      printf("temp 1 %lf \n",temp);
+	      temp -= ( (double) (get_out_degree_node(g,u)/(2*g->e)) * (get_out_degree_node(g,u)/(2*g->e)) ) ;
+	      printf("temp 2 %lf \n",temp);
+	      res +=  temp ;
+	    }
+	}
+      
+    }
+  return res;
+}
+
+double compute_quality_3(adjmatrix *g, int *nodes_communities, Community_heap *cp, unsigned long *degres,unsigned long *ms)
+{
+  double res = 0;
+  double temp = 0;
+  int current_community = -1;
+  for(unsigned long i = 0; i<cp->pointer; i++)
+    {
+      temp = 0;
+      current_community = (int) (cp->tas[i]);
+      temp = (double) (ms[current_community]);
+      temp /= (double) (g->e);
+      //printf("nb nd interne %lf\n",temp);
+      //printf("temp : %lf\n",temp);
+      temp -= (double) (pow(get_out_degree_community_2(g,nodes_communities,current_community,degres)/(2*g->e),2 ));
+      res+=temp;
+    }
+  return res;
+}
+
+unsigned long get_out_degree_community_2(adjmatrix *g, int *nodes_communities,int community, unsigned long *degres)
+{
+  unsigned long nb_out_degrees_community = 0;
+  for(unsigned long i=0; i<g->n; i++)
+    {
+      if(nodes_communities[i]==community)
+	nb_out_degrees_community+=degres[i];
+    }
+  return nb_out_degrees_community;
+}
+
+
+void update_inner_degrees(adjmatrix *g, int *nodes_communities, unsigned long node,int community,unsigned long *ms)
+{
+  for(int i=0; i<g->n; i++)
+    {
+      if(g->mat[node*g->n + i] == 1 && nodes_communities[i] == community)
+	ms[community]++;
+    }
+}
+
+void remove_inner_degrees(adjmatrix *g, int *nodes_communities, unsigned long node, int community, unsigned long *ms)
+{
+  if(ms[community]==0)
+    return;
+  for(unsigned long i=0; i<g->n; i++)
+    {
+      if(g->mat[node*g->n + i] == 1 && nodes_communities[i] == community)
+	ms[community]--;
+    }
+}
+
 
 int main(int argc, char **argv)
 {
@@ -539,7 +620,7 @@ int main(int argc, char **argv)
   //printf("Reading edgelist from file %s\n",argv[1]);
   //g = readedgelist(argv[1]);
   //mkmatrix(g);
-  g=generate_graph_2(12,4);
+  g=generate_graph_2(200,4);
   
 
   

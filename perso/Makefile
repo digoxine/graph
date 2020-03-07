@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -O9 
+CFLAGS=-g -O9 -lm 
 EXEC=bfs diameter findTriangle generateNode
 
 all: $(EXEC)

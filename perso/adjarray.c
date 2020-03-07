@@ -97,7 +97,7 @@ void mkadjlist(adjlist* g){
 		d[g->edges[i].t]++;
 	}
 
-	g->cd=malloc((g->n+1)*sizeof(unsigned long));
+g->cd=calloc((g->n+1),sizeof(unsigned long));
 	g->cd[0]=0;
 	for (i=1;i<g->n+1;i++) {
 		g->cd[i]=g->cd[i-1]+d[i-1];
