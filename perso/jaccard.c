@@ -1,6 +1,6 @@
 #include "jaccard.h"
-#define p 0.4
-#define q 0.01
+#define p 0.3
+#define q 0.001
 
 unsigned long intersection_neighbors(adjlist *g, int *nodes_communities,unsigned long node1, unsigned long node2)
 {
@@ -98,6 +98,8 @@ int *jaccard_label_propagation(adjlist *g, int iteration_max)
   //nb nodes in communities
   int *communities = calloc(g->n, sizeof(int));
   int best_community = -1;
+  unsigned long counter_same_nodes =0;
+  unsigned long *same_nodes_array = calloc(g->n, sizeof(unsigned long ));
   //Initialisation
   for(int i=0; i<g->n; i++)
     {
@@ -130,26 +132,41 @@ int *jaccard_label_propagation(adjlist *g, int iteration_max)
 
        for(iteration = 0 ; iteration<iteration_max; iteration++)
 	 {
-	   //printf("Iteration : %d\n",iteration);
+	   
 	   for(unsigned long i=0; i<g->n; i++)
 	     {
 	       //printf("i : %lu \n",i);
 	       max_similarity = 0;
 	       unsigned long real_node = ls_ordonnee_nodes[i];
 	       communities[ nodes_communities[real_node] ] --;
+	       nodes_communities[real_node] = -1;
 	       for(unsigned long j=0; j<g->n; j++)
 		 {
-		   
 		   if(communities[j]==0)
-		     continue;
+		     continue;		   
+		   nodes_communities[real_node] = j;
+		   communities[ nodes_communities[real_node] ]++;
+
 		   temp_similarity = community_similarity(g,nodes_communities,real_node,j);
-		   if(temp_similarity>max_similarity)
+		   if(temp_similarity == max_similarity)
 		     {
+		       same_nodes_array[++counter_same_nodes] = j;
+		     }
+		   else if(temp_similarity>max_similarity)
+		     {
+		       counter_same_nodes = 0 ;
+		       same_nodes_array[counter_same_nodes] = j;
 		       max_similarity = temp_similarity;
 		       best_community = j;
-		     }	  
+		     }
+		   communities[ nodes_communities[real_node] ]--;
+		   nodes_communities[real_node] = -1;
 		 }
-
+	       if(counter_same_nodes>0)
+		 {
+		   int rd = rand() % (counter_same_nodes+1);
+		   best_community = rd;
+		 }
 	       communities[best_community] ++;
 	       nodes_communities[real_node] = best_community;
 	     }
@@ -300,7 +317,7 @@ int main(int argc, char **argv)
   g=generate_graph(5000,6);
   mkadjlist(g);
   printf("sjkl\n");
-  int * labels =jaccard_label_propagation(g,1);
+  int * labels =jaccard_label_propagation(g,2);
 
   printf("affichage tableau\n");
   for(int i=0; i<g->n; i++)
