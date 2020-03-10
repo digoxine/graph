@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-g -O9 -lm 
-EXEC=bfs diameter findTriangle generateNode
+EXEC=bfs diameter findTriangle generateNode jaccard
 
 all: $(EXEC)
 
@@ -15,6 +15,9 @@ findTriangle : findTriangle.c adjarray.c fifo.c
 
 generateNode : GenerateNode.c adjmatrix.c
 	$(CC) $(CFLAGS) -o generateNode GenerateNode.c adjmatrix.c 
+
+ jaccard : jaccard.c adjarray.c
+	$(CC) $(CFLAGS) -o jaccard jaccard.c adjarray.c
 
 clean :
 	rm -rf *.o
