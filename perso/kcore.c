@@ -94,7 +94,7 @@ unsigned long extract_node_heap(Binary_heap *hp)
   return res;
 }
 
-unsigned long *core_decomposition(adjlist *g){
+unsigned long *core_decomposition(adjlist *g,unsigned long *core){
   int i=g->n-1;
   int c = 0;
   int *degre = calloc(g->n,sizeof(int));
@@ -123,6 +123,7 @@ unsigned long *core_decomposition(adjlist *g){
       //printf("État du pointeur du tas après le extract : %lu\n",tas->pointer);
       //printf("smallest node : %lu, i: %d\n",v,i);
       c = fmax(c,degre[v]);
+      core[v] = c;
       update_all_heap(v,g,degre,tas);
       node_order[i]=v;
       //printf("node order i:%d node:%lu\n",i,node_order[i]);
@@ -155,27 +156,110 @@ int main(int argc, char **argv)
   mkadjlist(g);
 
   
- 
-  unsigned long *res = core_decomposition(g);
+  unsigned long *core = calloc(g->n, sizeof(unsigned long));
+  unsigned long *order = core_decomposition(g,core);
  printf("//////////////\n");
   printf("apres maj 1\n");
 
 
-  
   for(int i=0; i<g->n; i++)
     {
-      printf("(order:%d,node:%lu),",i,res[i]);
+      printf("%d %lu\n",i,core[i]);
     }
+  for(int i=0; i<g->n; i++)
+    {
+      printf("(order:%d,node:%lu),",i,order[i]);
+    }
+  unsigned long max_prefix = size_densest_core_ordering_prefix(core, g->n);
+  printf("\ndensest prefix = %lu\n",max_prefix);
+
+
+  double *res = compute_density_score(g,10);
+  printf("Affichage res density score\n");
+  for(int i =0; i<g->n; i++)
+    printf("%d %lf,",i,res[i]);
+
+  double edge_density_res = edge_density(g);
+  printf("\n edge_density %lf \n",edge_density_res);
   
   free_adjlist(g);
-
+  free(order);
+  free(core);
   t2=time(NULL);
-
+  
   printf("- Overall time = %ldh%ldm%lds\n",(t2-t1)/3600,((t2-t1)%3600)/60,((t2-t1)%60));
 
   return 0; 
 }
- 
+
+
+unsigned long max_degree(adjlist *g)
+{
+  unsigned long max_deg = 0;
+  unsigned long current_degre=0;
+  for(int i=0; i<g->n; i++)
+    {
+      current_degre = g->cd[i+1]-g->cd[i];
+      if(current_degre>max_deg)
+	max_deg = current_degre;      
+    }
+  return max_deg;
+}
+
+
+double edge_density(adjlist *g)
+{
+  return (double) (g->e) / ((double) (g->n) * (double) (g->n -1));
+  // return (double) (max_degree(g)/ (double) (g->e)  );
+}
+
+
+double *compute_density_score(adjlist *g, unsigned long iteration_max)
+{
+  double *r = calloc(g->n, sizeof(unsigned long));
+  for(int i = 0 ; i<iteration_max; i++)
+    {
+      for(unsigned long u = 0; u<g->n; u++)
+	{
+	  for(unsigned long j =g->cd[u]; j<g->cd[u+1]; j++)
+	    {
+	      if(u>g->adj[j])
+		continue;
+	      unsigned long v = g->adj[j];
+	      if(r[u]<=r[v])
+		r[u]++;
+	      else
+		r[v]++;
+	    }
+	}
+    }
+  for(unsigned long i=0; i<g->n; i++)
+    r[i]/=iteration_max;
+  return r;
+}
+
+
+unsigned long size_densest_core_ordering_prefix(unsigned long *core,int length)
+{
+  unsigned long max_core = 0;
+  unsigned long size = 0 ;
+
+  for(int i=0; i<length; i++)
+    {
+      if(core[i]==max_core)
+	{
+	  size++;
+	}
+      if(core[i]>max_core)
+	{
+	  size = 0;
+	  max_core = core[i];
+	}
+    }
+  return size;
+}
+
+
 void update_all_heap(unsigned long nd, adjlist *g, int *deg,Binary_heap *hp)
  {
   
@@ -235,3 +319,10 @@ int research_heap(Binary_heap *hp,unsigned long nd)
     }
   return res;
 }
+
+
+double average_degree_density(adjlist *g)
+{
+  return (double) ( (g->e/g->n)/2 );
+}
+
