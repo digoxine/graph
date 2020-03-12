@@ -9,9 +9,8 @@ int bfs(adjlist *g, unsigned long s, Visited *visit);
 //Retourne le diametre de notre 
 int diameter(adjlist *g);
 
-//Retourne un noeud aléatoire parmi les noeuds déjà rencontrés dans visit
-unsigned long get_random_node(Visited *v);
-
 //Retourne le chemin de taille maximale déterminée avec Djikstra et partant du sommet s
 int max_chemin(adjlist *g,unsigned long s,Visited *v);
 
+//Retourne un noeud aléatoire parmi les noeuds déjà rencontrés dans visit
+unsigned long get_random_node(Visited *v);

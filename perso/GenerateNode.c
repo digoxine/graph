@@ -7,7 +7,7 @@
 #include "GenerateNode.h"
 
 #define p 0.2
-#define q 0.0001
+#define q 0.001
 //compute the maximum of three unsigned long
 
 inline unsigned long max3(unsigned long a,unsigned long b,unsigned long c){
@@ -31,7 +31,6 @@ adjmatrix *generate_graph_2(int n_nodes, int n_clusters)
 	{
 
 	  int cluster_2 = (int) (j/(n_nodes/n_clusters));
-	  //printf("i: %d j: %d cluster 1 : %d cluster 2 : %d\n",i,j,cluster_1,cluster_2);
 	  float ra = (float) ((rand()%100)/100.0);
 	  if(cluster_1 == cluster_2)
 	    {
@@ -40,8 +39,7 @@ adjmatrix *generate_graph_2(int n_nodes, int n_clusters)
 		  g->mat[i*g->n + j] = 1;
 		  g->mat[j*g->n + i] = 1;
 		  g->e++;
-		}
-	     
+		}	     
 	    }
 	  else
 	    {
@@ -85,32 +83,24 @@ unsigned long* label_propagation(adjmatrix *g)
 {
   unsigned long *labels = calloc(g->n,sizeof(unsigned long));
   unsigned long *copy = calloc(g->n, sizeof(unsigned long));
+
+  //Initialisation
   for(unsigned long i=0; i<g->n; i++)
     {
       labels[(int)(i)] = i;
       copy[i] = i;
-    }
+    }  
 
-  
-  int k=0;
   while(checkLabelPropagationEnds(g,labels,copy)!=0)
     {
-      //if(k==20000)
-      //break;
       fisher_yates(copy,g->n);
       for(unsigned long i=0; i<g->n;i++)
 	{
-	  unsigned long actual_node = copy[i];
-	  //printf("Actual node : %lu\n",actual_node);
+	  unsigned long actual_node = copy[i];	  
 	  unsigned long nd = highest_frequency(g,actual_node,copy,labels);
-	  //copy[i] = nd;
 	  labels[actual_node] = nd;
-	  //display_label(labels,g->n,copy);
-	}
-      
-      k++;
+	}      
     }
-
   free(copy);
   return labels;
 }
@@ -122,37 +112,21 @@ unsigned long highest_frequency(adjmatrix *g, unsigned long u,unsigned long *shu
   unsigned long *array = calloc(g->n,sizeof(unsigned long));
 
   for(unsigned long i=0;i<g->n;i++)
-    {
-      //printf("i:%d\n",i);
+    {     
       if(g->mat[u*g->n+i]==1)
 	{
-
-	  //printf("noeud : %lu labels : %lu\n",i,labels[i]);
-	  //printf("%lu, ",array[labels[i]]);
 	  array[labels[i]]++ ;
 	}
     }
 
-  //printf("Sortie première boucle\n");
+
   unsigned long max = 0;
   unsigned long max_node=0;
   int already_matched = 1;
   int counter_same_node_max = 1;//Lorsque l'on tombe sur un noeud max déjà rencontré on incrémente 0 déja rencontré
-  // print array
-  /*
-  printf("Affichage array\n");
-  for(unsigned long i=0; i<g->n; i++)
-    {
-      printf("On est i = %lu et shuffled_array[i] = %lu labels[si] = %lu\n",i,shuffled_array[i],labels[i] );
-      printf("%lu,",array[i]);
-    }
-  printf("\n");
-  */
 
   for(unsigned long i=0;i<g->n;i++)
-    {
-
-      
+    {      
       if(array[labels[i]]==max)
 	{
 	  if(already_matched==0)
@@ -171,26 +145,18 @@ unsigned long highest_frequency(adjmatrix *g, unsigned long u,unsigned long *shu
 	  //Réinitialisation des valeurs de comptages
 	  already_matched = 1;
 	  counter_same_node_max = 1;
-	  //printf("Rentre dans le if de la recherche du max\n");
-	  max =  array[i];//array[labels[shuffled_array[i]]];
+	  max =  array[i];
 	  max_node = i;
 	  
-	}
-      
+	}      
     }
-  //printf("counter same node max : %lu already match :%d \n",counter_same_node_max,already_matched);
-  //printf("max node de boucle : %lu max : %lu\n",max_node,max);
-  
   
   if(already_matched==0 && counter_same_node_max>1)
-    {
-      //printf("Dans le random\n");
+    {     
       unsigned long rd = rand()%(counter_same_node_max);
       unsigned long k=0;
-      //printf("le random : %lu\n",rd);
       for(unsigned long i=0; i<g->n; i++)
 	{	  
-
 	  if(array[i]==max)
 	    {
 	      if(k==rd)
@@ -203,9 +169,6 @@ unsigned long highest_frequency(adjmatrix *g, unsigned long u,unsigned long *shu
 	}
       
     }
-  
-  printf("max node : %lu\n",max_node);
-  
   free(array);
   return max_node;
     
@@ -213,7 +176,6 @@ unsigned long highest_frequency(adjmatrix *g, unsigned long u,unsigned long *shu
 
 unsigned long get_random_node(unsigned long *array, unsigned long max, int counter,int length,unsigned long *labels)
 {
-  //printf("le labels : %lu, counter : %d\n",max,counter);
   unsigned long rd = rand()%(counter);
   unsigned long k=0;
   for(unsigned long i=0; i<length; i++)
@@ -345,23 +307,15 @@ int *label_propagation_louvain(adjmatrix *g)
 	  current_quality = 0;
 	  max_quality = 0;
 	  best_community = -1;
-
 	  int previous_community = nodes_communities[u];
-
 	  remove_inner_degrees(g,nodes_communities,u,previous_community,ms);
-	  printf("u : %lu\n",u);
-
-	  //remove from community      
-	  //On note -1 quand un noeud u n'a pas de communauté      
-	  //nodes_communities[u]=-1;	  
-      
+	  nodes_communities[u] = -1;
 	  //Itération sur les communautés
 	  for(unsigned long i=0; i<communities_heap->pointer; i++)//
 	    {
 
 	      current_community = communities_heap->tas[i];
-	      //remove_inner_degrees(g,nodes_communities,u,current_community,ms);
-	      //printf("avant check_community \n");
+
 	      if(check_empty_community(nodes_communities, current_community, g->n)==1)
 		{
 		  remove_community(communities_heap,current_community);
@@ -369,26 +323,15 @@ int *label_propagation_louvain(adjmatrix *g)
 		  continue;
 		}
 	      
-	      //remove_inner_degrees(g,nodes_communities,u,previous_community,ms);
 	      //Nous insérons le noeud dans la communauté que l'on étudie
 	      nodes_communities[u] = current_community;
 	      //On met à jour les inner degrees
-	      update_inner_degrees(g, nodes_communities,u,current_community,ms);
-	      
+	      update_inner_degrees(g, nodes_communities,u,current_community,ms);	      
 	      current_quality = compute_quality_3(g,nodes_communities,communities_heap,degres,ms);
-	      //printf("apres le quality itération %d\n",current_community);
-	      //debug qualite
-	      //printf("qualité : %lf u: %lu community : %d\n",current_quality, u, current_community);
-	  
-	      //maj qualité
 	      
 	      if(current_quality==max_quality)
 		{
-		  //if(cpt_same_max_node==1)
-		    //cpt_same_max_node = 2;
-		  //printf("cpt same node : %lu\n",cpt_same_max_node);
-		  cpt_same_max_node++;
-		  
+		  cpt_same_max_node++;		  
 		  same_node_max[cpt_same_max_node] = current_community;
 		}
 	      
@@ -398,26 +341,22 @@ int *label_propagation_louvain(adjmatrix *g)
 		  same_node_max[cpt_same_max_node] = current_community;
 		  best_community = current_community;
 		  max_quality = current_quality;
-		  //cpt_same_max_node += 2;
 		}	      
-	      //display_ms(ms,g->n);
 	      //On supprime les inner degrees 
 	      remove_inner_degrees(g,nodes_communities,u,current_community,ms);
-	      //nodes_communities[u] = -1;
+	      nodes_communities[u] = -1;
 	    }
 	  
 	  if(cpt_same_max_node>0)
 	    {
-	      int r = rand()%(cpt_same_max_node+1);
-	      //printf("random : %d\n",r);
+	      int r = rand()%(cpt_same_max_node + 1);	      
 	      best_community = same_node_max[r];
-
 	    }
 	  nodes_communities[u] = best_community;
 	  //On met à jour les inner degrees
 	  update_inner_degrees(g,nodes_communities,u,best_community,ms);
 	}
-      printf("nombre de communautés : %lu nombre de communautés previous : %lu \n",current_number_communities,previous_number_communities);
+      //printf("nombre de communautés : %lu nombre de communautés previous : %lu \n",current_number_communities,previous_number_communities);
       previous_number_communities = current_number_communities;
       current_number_communities = communities_heap->pointer;
     }
@@ -512,51 +451,6 @@ unsigned long get_out_degree_community(adjmatrix *g, int *nodes_communities, int
 
 
 
-double compute_quality(adjmatrix *g, int *nodes_communities, int community)
-{
-  double quality = 0;
-  double kv = 0;
-  double kw = 0;
-  double sv = 0;
-  double sw = 0;
-  for(unsigned long v=0; v<g->n; v++)
-    {
-      for(unsigned long w=v+1; w<g->n; w++)
-	{
-	  sv = nodes_communities[v]==community?1.0:-1.0;
-	  sw = nodes_communities[w]==community?1.0:-1.0;
-	  kv = (double) (get_out_degree_node(g,v));
-	  kw = (double) (get_out_degree_node(g,w));
-	  quality += (double) ( g->mat[v*g->n+w] - (double) ( (kv*kw)/(g->e *2)) ) * (( (sv*sw) + 1 )/2) ;
-	}
-    }
-  return quality;
-}
-
-
-double compute_quality_2(adjmatrix *g, int *nodes_communities, Community_heap *cp)
-{
-  double res = 0.0;
-  double temp = 0.0;
-  for(unsigned long u = 0; u<g->n; u++)
-    {
-      for(unsigned long w = u+1; w<g->n; w++)
-	{
-	  if(nodes_communities[u] == nodes_communities[w])
-	    {
-	      temp=0;
-	      temp = (double) ( g->mat[u*g->n + w]/(2*g->e) );
-	      printf("temp 1 %lf \n",temp);
-	      temp -= ( (double) (get_out_degree_node(g,u)/(2*g->e)) * (get_out_degree_node(g,u)/(2*g->e)) ) ;
-	      printf("temp 2 %lf \n",temp);
-	      res +=  temp ;
-	    }
-	}
-      
-    }
-  return res;
-}
-
 double compute_quality_3(adjmatrix *g, int *nodes_communities, Community_heap *cp, unsigned long *degres,unsigned long *ms)
 {
   double res = 0;
@@ -568,8 +462,7 @@ double compute_quality_3(adjmatrix *g, int *nodes_communities, Community_heap *c
       current_community = (int) (cp->tas[i]);
       temp = (double) (ms[current_community]);
       temp /= (double) (g->e);
-      //printf("nb nd interne %lf\n",temp);
-      //printf("temp : %lf\n",temp);
+      //temp -= (double) (pow(degres[current_community]/(2*g->e),2 ));
       temp -= (double) (pow(get_out_degree_community_2(g,nodes_communities,current_community,degres)/(2*g->e),2 ));
       res+=temp;
     }
