@@ -62,33 +62,33 @@ void transform_transition_matrix_2(adjlist *g, vector *vector)
 
 
 void mkadjlist_oriented(adjlist* g){
-	unsigned long i,u,v;
-	unsigned long *d=calloc(g->n,sizeof(unsigned long));
+  unsigned long i,u,v;
+  unsigned long *d=calloc(g->n,sizeof(unsigned long));
 
-	for (i=0;i<g->e;i++) {
-		d[g->edges[i].s]++;
-		//d[g->edges[i].t]++;
-	}
+  for (i=0;i<g->e;i++) {
+    d[g->edges[i].s]++;
+    //d[g->edges[i].t]++;
+  }
 
-	g->cd=malloc((g->n+1)*sizeof(unsigned long));
-	g->cd[0]=0;
-	for (i=0;i<g->n;i++) {
-		g->cd[i+1]=g->cd[i]+d[i];
-		d[i]=0;
-	}
+  g->cd=malloc((g->n+1)*sizeof(unsigned long));
+  g->cd[0]=0;
+  for (i=1;i<g->n+1;i++) {
+    g->cd[i]=g->cd[i-1]+d[i-1];
+    d[i-1]=0;
+  }
 
-	g->adj=calloc(g->e,sizeof(unsigned long));
+  g->adj=calloc(g->e,sizeof(unsigned long));
 
-	for (i=0;i<g->e;i++) {
-		u=g->edges[i].s;
-		v=g->edges[i].t;
-		g->adj[ g->cd[u] + d[u] ]=v;
-		d[u]++;
-		//g->adj[ g->cd[v] + d[v]++ ]=u;
-	}
+  for (i=0;i<g->e;i++) {
+    u=g->edges[i].s;
+    v=g->edges[i].t;
+    g->adj[ g->cd[u] + d[u] ]=v;
+    d[u]++;
+    //g->adj[ g->cd[v] + d[v]++ ]=u;
+  }
 
-	free(d);
-	//free(g->edges);
+  free(d);
+  //free(g->edges);
 }
 int main(int argc, char **argv)
 {
@@ -190,7 +190,7 @@ vector res = transform_transition_matrix(g);
     }
 
   */
-  vector res_page = page_rank(100,g,0);
+  vector res_page = page_rank(10,g,0);
   
 printf("Affichage de la matrice stationnaire/////////////////\n");
   for(int i=0; i<res_page.taille;i++)
