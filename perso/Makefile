@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -O9 -lm
+CFLAGS=-g -O9 
 EXEC=bfs diameter findTriangle generateNode jaccard kcore pageRank
 
 all: $(EXEC)

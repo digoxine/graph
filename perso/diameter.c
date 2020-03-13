@@ -193,7 +193,7 @@ int main(int argc,char** argv){
   mkadjlist(g);
   
   int diam = diameter(g);
-  //printf("Le diamètre est de %d\n",diam);
+  printf("Le diamètre est de %d\n",diam);
   
   free_adjlist(g);
 
