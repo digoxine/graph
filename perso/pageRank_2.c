@@ -44,7 +44,7 @@ vector transform_transition_matrix(adjlist *g)
 	{
 	  //v = g->adj[d];
 	  //res.vec[d] += (double)(g->cd[u+1]-g->cd[u]);
-	  res.vec[d] = (1.0/(g->cd[u+1]-g->cd[u]));
+	  res.vec[d] += (1.0/(g->cd[u+1]-g->cd[u]));
 	}
     }
   return res;
@@ -68,11 +68,12 @@ vector prod_matrice(adjlist *g,vector T, vector weight)
 	  cpt_v[v]++;
 	}      
     }
-  
-   for(int i=0; i<g->n; i++)
+  /*
+  for(int i=0; i<g->n; i++)
     {
       res.vec[i]= (double) ( res.vec[i] / cpt_v[i] );
     }
+  */
   free(cpt_v);
   return res;
 }
@@ -110,7 +111,7 @@ vector normalize(vector P)
 vector page_rank(int nb_ite, adjlist *g, float alpha)
  {
    vector T = transform_transition_matrix(g);
-
+   /*
    printf("Affichage tableau\n");
    for(unsigned long u =0; u<g->n ; u++)
      {
@@ -122,7 +123,7 @@ vector page_rank(int nb_ite, adjlist *g, float alpha)
 	 }
        printf("\n");
      }
-
+   */
     
    
    vector P;   
@@ -136,7 +137,7 @@ vector page_rank(int nb_ite, adjlist *g, float alpha)
    printf("Debut //\n");
    for(int i=0; i<nb_ite;i++) 
      {
-       //display_vector(P);
+       display_vector(P);
        P = prod_matrice(g,T,P);
        P = heuristique(alpha,P);
        //display_vector(P);
