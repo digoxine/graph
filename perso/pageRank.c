@@ -190,7 +190,7 @@ vector res = transform_transition_matrix(g);
     }
 
   */
-  vector res_page = page_rank(10,g,0);
+  vector res_page = page_rank(1000,g,0);
   
 printf("Affichage de la matrice stationnaire/////////////////\n");
   for(int i=0; i<res_page.taille;i++)

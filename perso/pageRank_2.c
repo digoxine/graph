@@ -55,7 +55,6 @@ vector prod_matrice(adjlist *g,vector T, vector weight)
   vector res;
   res.taille = weight.taille;
   res.vec = calloc(res.taille,sizeof(double));
-  unsigned long *cpt_v = calloc(g->n, sizeof(unsigned long));
   for(unsigned long u=0; u<res.taille; u++)
     {
       
@@ -64,17 +63,9 @@ vector prod_matrice(adjlist *g,vector T, vector weight)
 	  unsigned long v = g->adj[d];
 	  if(weight.vec[v]==0)
 	    continue;
-	  res.vec[v] += weight.vec[v] * T.vec[d] ;
-	  cpt_v[v]++;
+	  res.vec[v] += weight.vec[u] * T.vec[d] ;
 	}      
     }
-  /*
-  for(int i=0; i<g->n; i++)
-    {
-      res.vec[i]= (double) ( res.vec[i] / cpt_v[i] );
-    }
-  */
-  free(cpt_v);
   return res;
 }
 
@@ -95,14 +86,9 @@ vector normalize(vector P)
   double temp=0;
   for(int i=0; i<P.taille;i++)
     sum_t+=P.vec[i];
-  //printf("sum : %lf \n",sum_t);
   for(int i=0; i<P.taille;i++)
     {
-      //P.vec[i] += P.vec[i]/sum_t;
       P.vec[i] += (1.0 - sum_t)/(P.taille);
-      //P.vec[i] += P.vec[i]*(1.0 - sum_t);
-      //temp = (double) ();
-      //P.vec[i] /=  (double) (sum_t);
     }
   return P;
 }
@@ -111,21 +97,6 @@ vector normalize(vector P)
 vector page_rank(int nb_ite, adjlist *g, float alpha)
  {
    vector T = transform_transition_matrix(g);
-   /*
-   printf("Affichage tableau\n");
-   for(unsigned long u =0; u<g->n ; u++)
-     {
-       printf("%lu :",u);
-       for(unsigned long d=g->cd[u]; d<g->cd[u+1]; d++)
-	 {
-	   double s = T.vec[d];
-	   printf("v: %lu ,%lf, ",g->adj[d],s);
-	 }
-       printf("\n");
-     }
-   */
-    
-   
    vector P;   
    P.vec = calloc(g->n, sizeof(double)); 
    P.taille = g->n; 
@@ -137,14 +108,14 @@ vector page_rank(int nb_ite, adjlist *g, float alpha)
    printf("Debut //\n");
    for(int i=0; i<nb_ite;i++) 
      {
-       display_vector(P);
+       // display_vector(P);
        P = prod_matrice(g,T,P);
        P = heuristique(alpha,P);
        //display_vector(P);
        P = normalize(P);
        //display_vector(P);
      } 
-   display_vector(P);
+   //display_vector(P);
    free(T.vec); 
    return P; 
  } 
@@ -176,16 +147,8 @@ int main(int argc, char **argv)
   mkadjlist_oriented(g);
   printf("mkadjlist \n");
 
-  vector res_page = page_rank(10,g,0);
-  /*
-  printf("Affichage de la matrice stationnaire\n");
-  for(int i=0; i<res_page.taille;i++)
-    {
-      printf("%lf,",res_page.vec[i]);
-      
-    }
-  printf("\n");
-  */
+  vector res_page = page_rank(10,g,0.1);
+  display_vector(res_page);
   free(res_page.vec);
   free_adjlist(g);
 
