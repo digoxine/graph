@@ -1,6 +1,6 @@
 #include "jaccard.h"
-#define p 0.3
-#define q 0.001
+#define p 0.4
+#define q 0.01
 
 
 /*
@@ -76,9 +76,8 @@ adjlist *generate_graph(int n_nodes, int n_clusters)
 	                                Union intersection noeud-noeud
         #################################################################################################
 */
-unsigned long intersection_neighbors(adjlist *g, int *nodes_communities,unsigned long node1, unsigned long node2)
+unsigned long intersection_neighbors(adjlist *g,unsigned long node1, unsigned long node2)
 {
-  int *visited = malloc(g->n * sizeof(int));  
   unsigned long res = 0;
   unsigned long k=g->cd[node1];
   unsigned long l = g->cd[node2];
@@ -93,8 +92,10 @@ unsigned long intersection_neighbors(adjlist *g, int *nodes_communities,unsigned
 	  l++;
 	    }
       if(g->adj[k] > g->adj[l])
-	l++;
-
+	{
+	  //printf("lecture : %lu \n",g->adj[l]);
+	  l++;
+	}
       if(g->adj[k] < g->adj[l])
 	k++;	  
     }
@@ -124,14 +125,14 @@ unsigned long intersection_neighbors(adjlist *g, int *nodes_communities,unsigned
 
       if(g->adj[k] > g->adj[l])
 	l++;
-    }
-  free(visited);
+    } 
   return res;
 }
 
 
-unsigned long union_neighbors(adjlist *g, int *nodes_communities,unsigned long node1, unsigned long node2)
+unsigned long union_neighbors(adjlist *g,unsigned long node1, unsigned long node2)
 {
+
   unsigned long res = 0;
   int *visited = malloc(sizeof(int)*g->n);
   for(int i=0; i<g->n; i++)
@@ -154,7 +155,9 @@ unsigned long union_neighbors(adjlist *g, int *nodes_communities,unsigned long n
       }
   
   free(visited);
+  
   return res;
+  
 }
 
 
@@ -240,9 +243,28 @@ double community_similarity(adjlist *g, int *nodes_communities, unsigned long no
 }
 
 
+double community_similarity_2(adjlist *g, int *nodes_communities, unsigned long node1, int community)
+{
+  double inter_res = (double) (intersection_community(g,nodes_communities,node1,community));
+  
+ double union_res=(double) union_community(g,nodes_communities,node1,community);
+ if(inter_res==0 && union_res==0)
+   return 1;
+ if(inter_res==0)
+   return 0;
+ return (inter_res)/(union_res);
+}
 
-
-
+double nodes_similarity(adjlist *g, unsigned long node1, unsigned long node2)
+{
+  double inter_res = intersection_neighbors(g,node1,node2);
+  double union_res = union_neighbors(g,node1,node2);
+  if(inter_res==0 && union_res==0)
+    return 1;
+  if(inter_res==0)
+    return 0;
+  return (inter_res/union_res);
+}
 /*
   ################################################################################################
                                  Jaccard label propagation
@@ -256,7 +278,6 @@ int *jaccard_label_propagation(adjlist *g, int iteration_max)
   int iteration = 0;
   double max_similarity = 0;
   double temp_similarity = 0;
-  double temp = 0;
   unsigned long *ls_ordonnee_nodes = malloc(sizeof(unsigned long)*g->n);
   double *S_nodes = calloc(g->n, sizeof(unsigned long));
   int *communities = calloc(g->n, sizeof(int));
@@ -272,51 +293,57 @@ int *jaccard_label_propagation(adjlist *g, int iteration_max)
       nodes_communities[i] = i;
       communities[i] = 1;
     }
-   
+  
   //On calcule les similarites entre noeuds dans le but de creer une liste ordonnée en fonction de celle-ci
+
   for(unsigned long u=0; u<g->n; u++)
     {
       //printf("u : %u \n",u);
-      max_similarity = 0;
+      max_similarity = S_nodes[u];
+
       for(unsigned long j=g->cd[u]; j<g->cd[u+1]; j++)
 	{
-	  temp_similarity = intersection_neighbors(g,nodes_communities,u,g->adj[j]);
-	  if(temp_similarity == 0)
-	    {
-	      continue;
-	    }
-	  temp_similarity /= union_neighbors(g,nodes_communities, u, g->adj[j]);
+	  temp_similarity = nodes_similarity(g,u,g->adj[j]);
+	  //max_similarity += temp_similarity;
 	  if(max_similarity<temp_similarity)
-	    max_similarity = temp_similarity;
+	    {
+	      max_similarity = temp_similarity;
+	    }
 	}
-      S_nodes[u] = max_similarity;      
+      S_nodes[u] = max_similarity;
     }
+
   //Effet de bord ls_ordonnne_nodes est maintenant ordonnee en fonction de la similarite
   //du noeud avec la plus grande similarite vers la moins grande
   bubble_sort_ls_nodes_with_similarity(S_nodes, ls_ordonnee_nodes, g->n);
+
 
   for(iteration = 0 ; iteration<iteration_max; iteration++)
     {
 	   
       for(unsigned long i=0; i<g->n; i++)
 	{
-	  //printf("i : %lu \n",i);
-	  max_similarity = 0;
+	  counter_same_nodes = 0;
+	  max_similarity = -1;
 	  unsigned long real_node = ls_ordonnee_nodes[i];
+	  //On le retire de sa communauté
+
 	  communities[ nodes_communities[real_node] ] --;
 	  nodes_communities[real_node] = -1;
+	  
 	  for(unsigned long j=0; j<g->n; j++)
 	    {
 	      if(communities[j]==0)
-		continue;		   
+		continue;
+	      //Ajout à la communauté pour calculer la similarité
 	      nodes_communities[real_node] = j;
-	      communities[ nodes_communities[real_node] ]++;
+	      communities[ j ]++;
 
 	      temp_similarity = community_similarity(g,nodes_communities,real_node,j);
 	      if(temp_similarity == max_similarity)
 		{
 		  same_nodes_array[++counter_same_nodes] = j;
-		}
+		  }
 	      else if(temp_similarity>max_similarity)
 		{
 		  counter_same_nodes = 0 ;
@@ -324,14 +351,18 @@ int *jaccard_label_propagation(adjlist *g, int iteration_max)
 		  max_similarity = temp_similarity;
 		  best_community = j;
 		}
-	      communities[ nodes_communities[real_node] ]--;
+	      //On le retire de sa communauté maintenant que l'on a calculé la similarité
+	      communities[j]--;
 	      nodes_communities[real_node] = -1;
 	    }
+	  
 	  if(counter_same_nodes>0)
-	    {
-	      int rd = rand() % (counter_same_nodes+1);
-	      best_community = rd;
-	    }
+	  {
+	    int rd = rand() % (counter_same_nodes+1);
+	    best_community = same_nodes_array[rd];	    
+	  }
+	  printf("best_community : %d \n",best_community);
+	  //On ajoute le noeud à la bonne communauté en n'ommettant pas de mettre à jour le nombre de noeud de la communauté en question	  
 	  communities[best_community] ++;
 	  nodes_communities[real_node] = best_community;
 	}
@@ -342,37 +373,42 @@ int *jaccard_label_propagation(adjlist *g, int iteration_max)
   return nodes_communities;
 }
 
-
+void reordering_label(int *labels,int length)
+{
+  int current_nd = -1;
+  int cpt = -1;
+  for(int i=0 ; i<length; i++)
+    {
+      if(current_nd!=labels[i])
+	{
+	  current_nd=labels[i];
+	  labels[i] = ++cpt;
+	}
+    }
+}
 
 int main(int argc, char **argv)
 {
   srand(time(NULL));
   adjlist* g;
-  time_t t1,t2;
-
-  t1=time(NULL);
-
-  g=generate_graph(5000,6);
+ 
+  //g=generate_graph(n_nodes,nb_clusters);
+  //mkadjlist(g)
+  if(argc<2)
+    {      
+      printf("this program expects the file you want to know the communities clustering\n");
+      return 1;
+    }
+  g = readedgelist(argv[1]);
+  printf("g->n = %lu\n",g->n);
   mkadjlist(g);
-  int * labels =jaccard_label_propagation(g,2);
-
-  printf("affichage tableau\n");
-  for(int i=0; i<g->n; i++)
+  int *labels =jaccard_label_propagation(g,20);
+  //reordering_label(labels,g->n);
+  for(int i=0; i<g->n;i++)
     {
-  printf("%d ",labels[i]);
-}
-  
-  printf("\n Fin affichage tableau\n");
-  printf("Number of nodes: %lu\n",g->n);
-  printf("Number of edges: %lu\n",g->e);
-
-  printf("Building the adjacency matrix\n");
-
-  printf("Affichage tableau des edges\n");
-
-  t2=time(NULL);
-
-  printf("- Overall time = %ldh%ldm%lds\n",(t2-t1)/3600,((t2-t1)%3600)/60,((t2-t1)%60));
+      //printf("dans boucle\n");
+      printf("%d\n",labels[i]);
+    } 
   free_adjlist(g);
   return 0;
 }

@@ -6,8 +6,8 @@
 #include <stdbool.h>
 #include "GenerateNode.h"
 
-#define p 0.2
-#define q 0.001
+//#define p 0.2
+//#define q 0.001
 //compute the maximum of three unsigned long
 
 inline unsigned long max3(unsigned long a,unsigned long b,unsigned long c){
@@ -15,14 +15,14 @@ inline unsigned long max3(unsigned long a,unsigned long b,unsigned long c){
 	return (a>c) ? a : c;
 }
 
-adjmatrix *generate_graph_2(int n_nodes, int n_clusters)
+adjmatrix *generate_graph_2(int n_nodes, int n_clusters, double p, double q)
 {
   int e1 = NLINKS;
   adjmatrix *g = malloc(sizeof(adjmatrix));
   g->n = n_nodes;
   g->e = 0;
   g->mat = calloc(g->n*g->n,sizeof(bool));
-  g->edges = calloc(g->n, sizeof(edge));
+  g->edges = calloc(e1, sizeof(edge));
   for(unsigned long i=0; i<n_nodes; i++)
     {
       int cluster_1 = (int) ((double) (i)/( ((double)(n_nodes))/ (double) (n_clusters)) );
@@ -36,6 +36,8 @@ adjmatrix *generate_graph_2(int n_nodes, int n_clusters)
 	    {
 	      if(ra<p)
 		{//Création de l'arête entre deux noeuds du même cluster
+		  g->edges[g->e].s = i;
+		  g->edges[g->e].t = j;
 		  g->mat[i*g->n + j] = 1;
 		  g->mat[j*g->n + i] = 1;
 		  g->e++;
@@ -45,6 +47,8 @@ adjmatrix *generate_graph_2(int n_nodes, int n_clusters)
 	    {
 	      if(ra<q)
 		{//liaison avec un noeud d'un cluster avec un cluster different
+		  g->edges[g->e].s = i;
+		  g->edges[g->e].t = j;
 		  g->mat[i*g->n + j] = 1;
 		  g->mat[j*g->n + i] = 1;
 		  g->e++;		  
@@ -506,50 +510,23 @@ int main(int argc, char **argv)
 {
   srand(time(NULL));
   adjmatrix* g;
-  time_t t1,t2;
-
-  t1=time(NULL);
-  
-  //printf("Reading edgelist from file %s\n",argv[1]);
-  //g = readedgelist(argv[1]);
-  //mkmatrix(g);
-  g=generate_graph_2(200,4);
-  
-
-  
-  printf("Number of nodes: %lu\n",g->n);
-  printf("Number of edges: %lu\n",g->e);
-
-  printf("Building the adjacency matrix\n");
-
-  printf("Affichage tableau des edges\n");
-  /*
-  for(int i=0; i<g->n; i++)
+  if(argc<5)
     {
-      for(int j=0; j<g->n; j++)
-	{
-	  if(g->mat[i*g->n +j]==1)
-	    printf("%d %d\n",i,j);
-	}
-      //printf("\n");
+      printf("Error. This program needs 4 arguments:\n \t -The number of nodes you want to create\n \t -The number of clusters you want to create\n \t -The probability for a node to be linked to a node of the same cluster\n \t -The probability for a node to be linked to a node of another cluster\n");
+      return 1;
     }
-  printf("\n");
-  */
-  //unsigned long *labels = label_propagation(g);
-  int *labels = label_propagation_louvain(g);
-  printf("Affichage tableau\n");
   
-  for(int i=0;i<g->n;i++)
+  int nb_nodes = atoi(argv[1]);
+  int nb_clusters = atoi(argv[2]);
+  double p = atof(argv[3]);
+  double q = atof(argv[4]);
+  //printf("p = %lf q = %lf\n",p,q);
+  g=generate_graph_2(nb_nodes,nb_clusters,p,q);
+  for(int i=0; i<g->e; i++)
     {
-      printf("%d,",labels[i]);      
+      printf("%lu %lu\n",g->edges[i].s,g->edges[i].t);
     }
-    printf("\n____________\n");
-  
   free_adjmatrix(g);
-
-  t2=time(NULL);
-
-  printf("- Overall time = %ldh%ldm%lds\n",(t2-t1)/3600,((t2-t1)%3600)/60,((t2-t1)%60));
 
   return 0;
 }

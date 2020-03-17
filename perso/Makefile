@@ -19,11 +19,16 @@ generateNode : GenerateNode.c adjmatrix.c
 jaccard : jaccard.c adjarray.c
 	$(CC) $(CFLAGS) -o jaccard jaccard.c adjarray.c
 
+jaccard_2 : jaccard_2.c adjarray.c
+	$(CC) $(CFLAGS) -o jaccard_2 jaccard_2.c adjarray.c -lm
+
 kcore : kcore.c adjarray.c
 	$(CC) $(CFLAGS) -o kcore kcore.c adjarray.c -lm
 
 pageRank : pageRank.c adjarray.c
 	$(CC) $(CFLAGS) -o pageRank pageRank.c adjarray.c
+
+
 
 clean :
 	rm -rf *.o

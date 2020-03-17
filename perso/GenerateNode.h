@@ -18,7 +18,7 @@ int checkLabelPropagationEnds(adjmatrix *g, unsigned long *labels,unsigned long 
 
 unsigned long get_random_node(unsigned long *array, unsigned long max, int counter, int length,unsigned long *labels);
 
-adjmatrix *generate_graph_2(int n_nodes, int n_clusters);
+adjmatrix *generate_graph_2(int n_nodes, int n_clusters, double p, double q);
 
 
 void display_label(unsigned long *label,int length,unsigned long *shuffled_array);
