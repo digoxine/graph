@@ -285,6 +285,41 @@ unsigned long size_densest_core_ordering_prefix_2(unsigned long *core,int length
 }
 
 
+unsigned long size_densest_core_ordering_prefix_3(unsigned long *core,adjlist *g)
+{
+  unsigned long  max_core = 0;
+  for(int i=0; i<g->n; i++)
+    {
+      //printf("core[i] = %d \n",core[i]);
+      if(max_core<core[i])
+	max_core = core[i];
+    }
+  //printf("max_core : %d \n",max_core);
+  double max_prefix=0;
+  double current_prefix = 0;
+  unsigned long cpt =0;
+  for(int i=0; i<max_core; i++)
+    {
+      cpt =0;
+      current_prefix=0;
+      for(int j=0; j<g->n; j++)
+	{
+	  if(core[j]==i)
+	    {
+	      current_prefix+= (double) (g->cd[j+1]-g->cd[j]);
+	      cpt++;
+	    }
+	}
+      if(cpt==0)
+	continue;
+      current_prefix/=cpt;
+      printf("current_prefix : %lf\n",current_prefix);
+      if(current_prefix>max_prefix)
+	max_prefix=current_prefix;
+    }
+  return (int) max_prefix;
+}
+  
 
 double average_degree_density(adjlist *g)
 {
@@ -331,7 +366,7 @@ int main(int argc, char **argv)
       printf("(order:%d,node:%lu),",i,order[i]);
     }
   */
-  unsigned long max_prefix = size_densest_core_ordering_prefix_2(core, g->n);
+  unsigned long max_prefix = size_densest_core_ordering_prefix_3(core, g);
   
   printf("\ndensest prefix = %lu\n",max_prefix);
 

@@ -1,8 +1,0 @@
-file=jaccard_label.txt
-
-if [[ -f "$file" ]]; then
-    rm -rf $file
-else
-    touch $file
-fi
-./jaccard > $file

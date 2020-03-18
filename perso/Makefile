@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-g -O9 
-EXEC=bfs diameter findTriangle generateNode jaccard kcore pageRank
+EXEC=bfs diameter findTriangle generateNode jaccard kcore pageRank pageRank_2
 
 all: $(EXEC)
 
@@ -28,7 +28,8 @@ kcore : kcore.c adjarray.c
 pageRank : pageRank.c adjarray.c
 	$(CC) $(CFLAGS) -o pageRank pageRank.c adjarray.c
 
-
+pageRank_2 : pageRank_2.c adjarray.c
+	$(CC) $(CFLAGS) -o pageRank_2 pageRank_2.c adjarray.c
 
 clean :
 	rm -rf *.o
