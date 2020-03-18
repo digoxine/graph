@@ -252,6 +252,40 @@ unsigned long size_densest_core_ordering_prefix(unsigned long *core,int length)
   return size;
 }
 
+
+int cmpfunc (const void * a, const void * b) {
+   return ( *(int*)a - *(int*)b );
+}
+
+unsigned long size_densest_core_ordering_prefix_2(unsigned long *core,int length)
+{
+  qsort(core,length,sizeof(int),cmpfunc);
+  unsigned long max_counter = 0;
+  unsigned long counter_current =0;
+  unsigned long max_core = 0;
+  for(int i=0;i<length;i++)
+    {
+
+      if(core[i]==max_core)
+	{
+	  counter_current ++;
+	}
+      
+      if(core[i]>max_core)
+	{
+	  max_core=core[i];
+	  counter_current=0;
+	}
+      if(counter_current>max_counter)
+	{
+	  max_counter=counter_current;
+	}
+    }
+  return max_counter;
+}
+
+
+
 double average_degree_density(adjlist *g)
 {
   return (double) ( (g->e/g->n)/2 );
@@ -285,7 +319,7 @@ int main(int argc, char **argv)
   
   
 
-
+  /*
   for(int i=0; i<g->n; i++)
     {
       printf("%d %lu\n",i,core[i]);
@@ -296,21 +330,21 @@ int main(int argc, char **argv)
     {
       printf("(order:%d,node:%lu),",i,order[i]);
     }
-  
-  unsigned long max_prefix = size_densest_core_ordering_prefix(core, g->n);
+  */
+  unsigned long max_prefix = size_densest_core_ordering_prefix_2(core, g->n);
   
   printf("\ndensest prefix = %lu\n",max_prefix);
 
 
   double *res = compute_density_score(g,10);
-  
+  /*
   printf("Affichage res density score\n");
   for(int i =0; i<g->n; i++)
     printf("%d %lf,",i,res[i]);
 
   double edge_density_res = edge_density(g);
   printf("\n edge_density %lf \n",edge_density_res);
-  
+  */
   free_adjlist(g);
   free(order);
   free(core);
