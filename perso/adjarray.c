@@ -70,7 +70,7 @@ adjlist* readedgelist(char* input){
 	g->n=0;
 	g->e=0;
 	g->edges=malloc(e1*sizeof(edge));//allocate some RAM to store edges
-	printf("Avant le while\n");
+
 	while (fscanf(file,"%lu %lu", &(g->edges[g->e].s), &(g->edges[g->e].t))==2) {
 		g->n=max3(g->n,g->edges[g->e].s,g->edges[g->e].t);
 		if (++(g->e)==e1) {//increase allocated RAM if needed
