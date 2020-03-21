@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-g -O9 
-EXEC=bfs diameter findTriangle generateNode jaccard kcore pageRank pageRank_2 classification_score
+EXEC=bfs diameter findTriangle generateNode jaccard kcore pageRank pageRank_2 classification_score label_propagation louvain
 
 all: $(EXEC)
 
@@ -33,6 +33,12 @@ pageRank : pageRank.c adjarray.c
 
 pageRank_2 : pageRank_2.c adjarray.c
 	$(CC) $(CFLAGS) -o pageRank_2 pageRank_2.c adjarray.c
+
+label_propagation : label_propagation.c adjmatrix.c
+	$(CC) $(CFLAGS) -o label_propagation label_propagation.c adjmatrix.c
+
+louvain : louvain.c adjarray.c
+	$(CC) $(CFLAGS) -o louvain louvain.c adjarray.c
 
 clean :
 	rm -rf *.o

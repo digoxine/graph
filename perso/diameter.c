@@ -4,7 +4,7 @@
 #include <string.h>
 #include "diameter.h"
 
-#define N_DIAMETER 1000
+#define N_DIAMETER 100
 
 /*
   ###############################################################################################################
@@ -52,7 +52,9 @@ int bfs(adjlist *g, unsigned long s, Visited *visit)
 	  if(visit->visited[v]==0)
 	    {
 	      add_fifo(f,v);
-	      markNode(visit,v);
+	      visit->nbNoeudsvisites++;
+	      visit->visited[v]=1;
+	      //markNode(visit,v);
 	      tailleComposante++;
 	    }	
 	}
@@ -155,6 +157,7 @@ int diameter(adjlist *g)
   visit->visited = calloc(g->n, sizeof(unsigned long));
     
   int taille = bfs(g,nodeOfMaxComponent,visit);
+  printf("taille : %ld",taille);
   //Tous les sommets de la composante connexe contenant s sont à 1 le reste est à 0
   
   //Ici nous allons utiliser une heuristique particulière car si nous avons une composante connexe unique, en essayant de déterminer une lower bound du diamètre en passant en revue tous les noeuds de la composante va majorer bien trop nos temps de calculs .
@@ -173,6 +176,8 @@ int diameter(adjlist *g)
 	  lowerBoundDiameter = tmp;
 	}
     }  
+  free(visit->visited);
+  free(visit);
   return lowerBoundDiameter;
 }
 

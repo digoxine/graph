@@ -15,9 +15,7 @@ unsigned long max_degree(adjlist *g)
 
 int find_triangle(adjlist *g)
 {
-
-  sort_test(g);
-
+  
   int nbTriangles=0;
   for(unsigned long  i=0; i<g->n; i++)
     {
@@ -129,7 +127,8 @@ int main(int argc,char** argv){
   printf("Building the adjacency list\n");
   mkadjlist(g);
 
-
+  int nb_triangle = find_triangle(g);
+  printf("nb_triangles = %d\n",nb_triangle);
 
   
   double transitivity_r = transitivity_ratio(g);
