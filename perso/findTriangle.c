@@ -17,7 +17,7 @@ int find_triangle(adjlist *g)
 {
   
   int nbTriangles=0;
-  for(unsigned long  i=0; i<g->n; i++)
+  for(unsigned long i=0; i<g->n; i++)
     {
       //La boucle max sera de taille degre 
       for(int j=g->cd[i];j<g->cd[i+1];j++)
@@ -69,12 +69,36 @@ double transitivity_ratio(adjlist *g)
   
 }
 
-
-double clustering_coeff(adjlist *g)
+double transitivity_ratio_2(adjlist *g)
 {
-  int nbTriangles = find_triangle(g);
-  return ((double)(nbTriangles)/(double) (g->e));
-  
+  sort_test(g);
+  unsigned long nb_connected = 0;
+  for(unsigned long  i=0; i<g->n; i++)
+    {     
+      for(int j=g->cd[i];j<g->cd[i+1];j++)
+	{
+	  unsigned long v = g->adj[j];	  
+	  if(v<=i)
+	    continue;
+	  for(int k = j+1; k<g->cd[i+1];k++)
+	    {
+	      unsigned long z = g->adj[k];
+	      if(z<=v)
+		continue;	      
+	      nb_connected++;
+	    }
+	  
+	  for(int r=g->cd[v];r<g->cd[v+1];r++)
+	    {
+	      unsigned long w= g->adj[r];
+	      if(w<=v)
+		continue;
+	      nb_connected++;		     
+	    }
+	}
+    }
+  double nb_triangles = (double) (find_triangle(g));
+  return ((3*nb_triangles)/((double) (nb_connected)));
 }
 
 
@@ -127,13 +151,13 @@ int main(int argc,char** argv){
   printf("Building the adjacency list\n");
   mkadjlist(g);
 
-  int nb_triangle = find_triangle(g);
-  printf("nb_triangles = %d\n",nb_triangle);
+  //int nb_triangle = find_triangle(g);
+  //printf("nb_triangles = %d\n",nb_triangle);
 
   
-  double transitivity_r = transitivity_ratio(g);
+  double transitivity_r = transitivity_ratio_2(g);
 
-  //printf("Le transitivity ratio  est de : %f\n",transitivity_r);
+  printf("Le transitivity ratio  est de : %f\n",transitivity_r);
 
   free_adjlist(g);
 

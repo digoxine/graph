@@ -313,7 +313,7 @@ unsigned long size_densest_core_ordering_prefix_3(unsigned long *core,adjlist *g
       if(cpt==0)
 	continue;
       current_prefix/=cpt;
-      printf("current_prefix : %lf\n",current_prefix);
+      //printf("current_prefix : %lf\n",current_prefix);
       if(current_prefix>max_prefix)
 	max_prefix=current_prefix;
     }
@@ -323,11 +323,53 @@ unsigned long size_densest_core_ordering_prefix_3(unsigned long *core,adjlist *g
 
 double average_degree_density(adjlist *g)
 {
-  return (double) ( (g->e/g->n)/2 );
+  double res = 0;
+  for(unsigned long u=0; u<g->n; u++)
+    {
+      res+= (double) (g->cd[u+1]-g->cd[u]);
+    }
+  return (double) (0.5*(res/g->n));
 }
 
 
+unsigned long max_order(unsigned long *core,int length)
+{
+  unsigned long res = 0;
+  for(int i=0 ; i<length;i++)
+    if(res<core[i])
+      res=core[i];
+  return res;
+}
 
+double average_degree_density_2(unsigned long *order, unsigned long *core, adjlist *g)  
+{
+  unsigned long max_core = max_order(core,g->n);
+  //printf("max core : %lu \n",max_core);
+  double *degres =calloc(max_core+1,sizeof(double));  
+  double *cpt = calloc(max_core+1, sizeof(double));
+  for(unsigned long i=0; i<g->n;i++)
+    {
+      double diff = (double) (g->cd[i+1]-g->cd[i]);      
+      degres[core[i]]+=diff;
+      cpt[core[i]]++;
+    }  
+  double res = 0;
+  for(unsigned long i=0; i<max_core; i++)
+    {
+      //double temp = (double) (i);
+      //degres[i] /= (double) (g->cd[g->n]);
+      //printf("cpt[%lu] = %lf\n",i,cpt[i]);
+      if(degres[i]==0)
+	continue;
+      //res+=degres[i];
+      //res+=degres[i]/2;
+      //res+=cpt[i]*i;
+      res+=(degres[i]/cpt[i]);// *temp;
+    } 
+  free(cpt);
+  free(degres);
+  return (double) (res/(max_core+1));  
+}
 
 int main(int argc, char **argv)
 {
@@ -347,39 +389,22 @@ int main(int argc, char **argv)
   mkadjlist(g);
 
 
-
-  
   unsigned long *core = calloc(g->n, sizeof(unsigned long));
   unsigned long *order = core_decomposition(g,core);
-  
-  
-
-  /*
-  for(int i=0; i<g->n; i++)
-    {
-      printf("%d %lu\n",i,core[i]);
-    }
-
-  
-  for(int i=0; i<g->n; i++)
-    {
-      printf("(order:%d,node:%lu),",i,order[i]);
-    }
+  /*printf("Affichage core \n");
+  for(int i=0; i<g->n;i++)
+    printf("i:%d, %lu\n",i,core[i]);
   */
-  unsigned long max_prefix = size_densest_core_ordering_prefix_3(core, g);
+  //double avg = average_degree_density(g);
+  double avg = average_degree_density_2(order,core,g);
+  printf("avarage degree density : %lf\n",avg);
+
+  //unsigned long max_prefix = size_densest_core_ordering_prefix_3(core, g);
   
-  printf("\ndensest prefix = %lu\n",max_prefix);
+  //printf("\ndensest prefix = %lu\n",max_prefix);
 
 
-  double *res = compute_density_score(g,10);
-  /*
-  printf("Affichage res density score\n");
-  for(int i =0; i<g->n; i++)
-    printf("%d %lf,",i,res[i]);
-
-  double edge_density_res = edge_density(g);
-  printf("\n edge_density %lf \n",edge_density_res);
-  */
+  //double *res = compute_density_score(g,10);
   free_adjlist(g);
   free(order);
   free(core);

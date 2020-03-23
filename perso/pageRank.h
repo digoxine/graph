@@ -7,11 +7,12 @@ typedef struct
   int taille;
   double *vec;
 } vector;
-vector *prod_matrice(vector *T, vector *weight);
-vector transform_transition_matrix(adjlist *g);
-void mkadjlist_oriented(adjlist* g);
-vector page_rank(int t, adjlist *g, float alpha);
-void heuristique(float alpha,vector *v);
-void normalize(vector *P);
 
-void transform_transition_matrix_2(adjlist *g, vector *v);
+
+void mkadjlist_oriented(adjlist* g);
+vector transform_transition_matrix(adjlist *g);
+vector prod_matrice(adjlist *g,vector T, vector weight);
+vector heuristique(float alpha,vector v);
+vector normalize(vector P);
+vector page_rank(int nb_ite, adjlist *g, float alpha);
+void display_vector(vector v);

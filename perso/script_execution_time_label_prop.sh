@@ -18,7 +18,7 @@ do
     #./../Community_BGLL_CPP/convert -i grd_graph.txt -o graph.bin 
     #time_bgll=$( time ( ./../Community_BGLL_CPP/community graph.bin -l -1 2>/dev/null 1>&2 ) 2>&1)
     time_label=$( time ( ./label_propagation $tree&>/dev/null 1>&2 ) 2>&1)
-    echo `echo "scale=3; $p/1000"|bc` `echo "scale=3;$q/1000"|bc` $time_bgll $time_label >> $execution_time
+    echo $cpt `echo "scale=3; $p/1000"|bc` `echo "scale=3;$q/1000"|bc` $time_bgll $time_label >> $execution_time
     #echo $time_label
     ((cpt+=1000))
 done

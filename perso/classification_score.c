@@ -22,7 +22,7 @@ double classification_score(int *labels,int nb_clusters, int nb_nodes)
 	      cpt++;
 	    }
 	}
-    }
+    }  
   return (double) (cpt/ ((double) (nb_nodes)));
 }
 
@@ -59,7 +59,8 @@ int main(int argc, char **argv)
     {      
       printf("this program expects the file you want to know the communities clustering and the number of clusters\n");
       return 1;
-    } 
+    }
+
   int nb_clusters=atoi(argv[1]);
   int nb_nodes = get_nb_nodes(argv[2]);
   int *labels =read_labels(argv[2],nb_nodes);

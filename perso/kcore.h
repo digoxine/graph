@@ -25,7 +25,7 @@ unsigned long *core_decomposition(adjlist* g,unsigned long *core);
 
 
 //degree_density
-double average_degree_density(adjlist *g);
+//double average_degree_density(adjlist *g);
 
 unsigned long size_densest_core_ordering_prefix(unsigned long *core, int length) ;
 

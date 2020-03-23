@@ -3,6 +3,8 @@
 \usepackage{listings}
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
 % Title Page
 \title{Rapport CPA}
 \author{Memmi Sacha \\ Shokoufeh}
@@ -152,12 +154,24 @@ Ci-dessous les résultats obtenus.
      Amazon &667 129& 1s\\ 
      Orkut & 627584181& 1h35m38 \\
      Live Journal &177820130 & 4m53s\\ 
-     Friendster & & 3\\ 
+     Friendster &non calculable & non calculable\\ 
      \hline
     \end{tabular}
 \end{center}
-Pour le transivity ratio : faire transitivity ratio 
-URGENT
+Ci-dessous les résultats de transitivity ratio obtenus:
+\\
+\begin{center}
+    \begin{tabular}{|l|c|c|}
+    \hline
+     Set de données & transitivity ratio & temps d'exécution\\ \hline
+     Email & 0.348518& 0s\\ 
+     Amazon &0.314602& 1s\\ 
+     Orkut & 627584181& 1h35m38 \\
+     Live Journal &0.147386 & 4m22s\\ 
+     Friendster &non calculable & non calculable\\ 
+     \hline
+    \end{tabular}
+\end{center}
 \chapter{Détection de communautés dans un graph non orienté}
 \section{Génération de graph jouet}
 Pour la génération d'un graph, nous prenons en argument un nombre de noeuds un nombre de clusters, un p et un q.
@@ -254,4 +268,171 @@ Nous superposons les graphes de tous nos résultats:
 Nous remarquons que nos deux algorithmes précedents étaient bien plus efficace que le Louvain que nous avons implémenté.
 \\
 \section{Experimental Evaluation du louvain fourni}
+\subsection{Analyse temporelle}
+Tout d'abord, selon nos analyses théoriques précédentes, nous pensons que la complexité temporelle est à peu près égale à O($S^2$).
+\\
+Regardons si les analyses expérimentales que nous avons mener nous permet de vérifier cette assertion.
+\\
+Ci-dessous le graph de l'évolution des temps d'exécutions en fonction du nombre de noeuds présents dans notre graphe.
+\\
+Nous avons fixé p à 0.5, q à 0.4 et le nombre de clusters à 8 pour la génération de nos graph.
+\\
+\includegraphics[scale=0.6]{./Datas/graphTempsExecutionLabelLouvain.png}
+\\
+\newline
+En violet, nous avons le graph des temps d'exécution du Louvain fourni.
+\\
+En bleu, nous avons les temps d'exécution du Label Propagation.
+\\
+\\
+Tout d'abord, nous constatons que notre algorithme est légèrement plus rapide que celui fourni.
+\\
+Comme nous le disions précédemment, nous pouvons voir que les courbes ont une forme de fonctions carré.
+Pour vérifier cela, nous avons aussi afficher en vert et jaune les courbes respectivement de Louvain et du Label propagation sur lesquelles on a appliqué la fonction racine carré. 
+\\
+Nous constatons que l'application de cette fonction a linéarisée nos courbes. 
+\\
+Notre intuition était donc correcte.
+\\
+\subsection{Analyse accuracy}
+Les résultats que nous avons pu obtenir ont été obtenu pour :\\
+-5000 noeuds\\
+-p = 0.5\\
+-q varie de 0.1 à 1\\
+-10 clusters\\
+\includegraphics[scale=0.5]{./Datas/evalScoreLabelLouvain.png}
+\\
+Nous constatons sans surprise que la précision du programme fourni est bien plus robuste à l'augmentation de q par rapport à celle du label propagation que nous avons codé.\\
+Il faut attendre que le ratio $\frac{p}{q}$ soit proche de 1 pour que la précision du programme fourni commence à réduire de manière significative.
+\\
+\subsection{Comparaisons des deux algorithmes}
+Pour temperer l'utilité de notre algorithme, il convient de rappeler que q est la probabilité qu'un noeud soit relier à un noeud d'un autre cluster.
+\\
+Ainsi, plus le graph contient de noeuds plus nos noeuds seront reliés aux noeuds d'autres clusters.
+\\
+Habituellement, q est très faible.
+\\
+En général, on a une connexité très basse entre noeuds de clusters différents. Par conséquent, notre algorithme peut s'avérer tout à fait pertinent. 
+\\
+D'autant plus qu'il est plus rapide que celui du Louvain fourni.
+\\
+Pour conclure, lorsque l'on sait qu'il n'y a pas une grande connexité entre les noeuds de clusters différents, il est préférable d'utiliser notre algorithme.
+\\
+Si l'on cherche la précision, il est au contraire préférable d'utiliser le programme fourni dans l'exercice.
+\\
+\chapter{Page Rank}
+\section{Préambule}
+Le but de cet algorithme est de trouver la matrice stationnaire vers laquelle converge un graph.
+\\
+La somme de tous éléments du vecteur que nous renvoie notre algorithme fait 1.
+\\
+L'algorithme nous renvoie la probabilité de se trouver en ce noeud après une infinité d'itérations.
+\\
+Il permet de déterminer le vecteur propre de la matrice représentant notre graphe.
+\\
+Pour rappel, le vecteur propre X d'une matrice A est tel que:\\
+$AX = \lambda X$
+\\
+Il s'agit d'algorithmes primordiaux dans le fonctionnement des moteur de recherches.
+\section{Exercice 1}
+Pour arriver à converger, 11 itérations sont suffisantes.
+\\
+voici les 5 pages avec les hauts ranks et 5 pages avec les bas rank
+\begin{table}[ht]
+\caption{5 page avec plus bas score}
+\centering
+\begin{tabular}{|c c c c|}
+\hline\hline
+Number & PageScore & PageNumber & PageName \\[0.5ex]
+\hline
+1 & 0.000004 & 691802 & Ethics \\
+2 & 0.000004 & 691565 & Humor \\
+3 & 0.000004 & 691566 & Geometry  \\
+4 & 0.000004 & 690803 & Calculus \\
+5 & 0.000004 & 690637 & Algebra \\
+\hline
+\end{tabular}
+\label {table:nonlin}
+\end{table}
+
+\begin{table}[ht]
+\caption{5 page avec haut bas score}
+\centering
+\begin{tabular}{|c c c c|}
+\hline\hline
+Number & PageScore & PageNumber & PageName \\[0.5ex]
+\hline
+1 & 0.000100 & 12541226 & Maps of the Caliphate \\
+2 & 0.000085 & 6801297 & Old maps of Austria-Hungary \\
+3 & 0.000077 & 4392379 & Napoleonic Wars  \\
+4 & 0.000076 & 5851224 & People from Richmond, Virginia \\
+5 & 0.000070 & 690451 & World War II \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Correlations}
+Nous avons exécuté l’algorithme pour donner ce qui est dans catHier\_allDirLinks avec régression liner pour ces données.\\
+Nous avons obtenus les graphes suivants:
+\\
+Indegrees:
+\\
+\begin{figure}[H]
+  \caption{x = PageRank with  = 0.15, y = in-degree.}
+  \centering
+    \includegraphics{./Datas/pageRank/pageRankAlpha015Indegree.png}    
+\end{figure}
+Outdegrees
+\begin{figure}[H]
+ \centering
+  \caption{x = PageRank with  = 0.15, y = out-degree}
+    \includegraphics{./Datas/pageRank/pageRankAlpha015Outdegree.jpg}
+\end{figure}
+$\alpha = 0.15, \alpha = 0.1$
+\begin{figure}[H]
+  \caption{x = PageRank with  = 0.15, y = PageRank with  = 0.1}
+  \centering
+    \includegraphics{./Datas/pageRank/pageRankAlpha015PageRankAlpha01.jpg}
+\end{figure}
+$\alpha = 0.15,\alpha= 0.2$
+\begin{figure}[H]
+  \caption{x = PageRank with  = 0.15, y = PageRank with  = 0.2}
+  \centering
+    \includegraphics{./Datas/pageRank/pageRankAlpha015Alpha02.jpg}
+\end{figure}
+$\alpha =0.15,\alpha=0.5$
+\begin{figure}[H]
+  \caption{x = PageRank with  = 0.15, y = PageRank with  = 0.5}
+  \centering
+    \includegraphics{./Datas/pageRank/pageRankAlpha015Alpha05.jpg}
+\end{figure}
+$\alpha =0.15,\alpha=0.9$
+\begin{figure}[H]
+  \caption{x = PageRank with  = 0.15, y = PageRank with  = 0.9}
+  \centering
+    \includegraphics{./Datas/pageRank/pageRankAlpha015Alpha09.jpg}
+\end{figure}
+$\alpha =0.15,\alpha=0.9$ log scale
+\begin{figure}[H]
+  \caption{x = PageRank with  = 0.15, y = PageRank with  = 0.9 with not linear regression }
+  \centering
+    \includegraphics{./Datas/pageRank/pageRankAlpha015PageRankAlpha01.jpg}
+\end{figure}
+1)Il est préférable d'utliser l'échelle logarithmique car elle permet de linéairser grandement la distribution.\\
+2)En regardant la corrélation sur le dernier graph nous constatons qu'il existe une forte corrélation entre x et y. En effet, lorsque nous augmentons le $\alpha$ du y nous constatons que les valeurs de score de régression s'éloigne de la droite de régression.
+\\
+\chapter{Densest subgraph}
+\chapter{Conclusion}
+Durant toutes nos recherches nous avons pu utiliser différentes structures de données dans le but de répondre à des problématiques très actuelles. 
+\\
+Nous avons pu étudier des algorithmes permettant de détecter des communautés, de page ranker un graph(c'est déterminer sa matrice stationnaire lorsqu'il converge), ou encore de décomposer un graph en différents cores et de détecter des cliques.
+\\
+\newline
+Pour répondre à toutes ces problématiques, nous avons dû utiliser les structures de données les plus appropriées afin de garder sous contrôle les temps d'exécution ainsi que l'espace mémoire consommé par nos programmes.
+\newline
+Nous avons pu constater une nouvelle fois que la structure de données la plus appropriée pour répondre à une problématique pouvait fluctuer.
+\\
+Ainsi, lorsque nous voulons modifier le graph ou qu'un graph est fortement connexe, il est préférable d'utiliser l'adjacency matrix.\\
+Alors que lorsque nous travaillons avec des graphes très grands et pas très connexes il est préférable d'utiliser la structure de données adjacency array.
+
 \end{document}          
