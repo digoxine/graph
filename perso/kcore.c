@@ -321,17 +321,6 @@ unsigned long size_densest_core_ordering_prefix_3(unsigned long *core,adjlist *g
 }
   
 
-double average_degree_density(adjlist *g)
-{
-  double res = 0;
-  for(unsigned long u=0; u<g->n; u++)
-    {
-      res+= (double) (g->cd[u+1]-g->cd[u]);
-    }
-  return (double) (0.5*(res/g->n));
-}
-
-
 unsigned long max_order(unsigned long *core,int length)
 {
   unsigned long res = 0;
@@ -341,34 +330,65 @@ unsigned long max_order(unsigned long *core,int length)
   return res;
 }
 
-double average_degree_density_2(unsigned long *order, unsigned long *core, adjlist *g)  
+double average_degree_density_3(unsigned long *core, adjlist *g)
 {
   unsigned long max_core = max_order(core,g->n);
-  //printf("max core : %lu \n",max_core);
-  double *degres =calloc(max_core+1,sizeof(double));  
-  double *cpt = calloc(max_core+1, sizeof(double));
-  for(unsigned long i=0; i<g->n;i++)
+  double *degres = calloc(max_core+1, sizeof(double));
+  double *cpt = calloc(max_core+1,sizeof(double));
+  double res = 0;
+  unsigned long u = 0;
+  unsigned long v = 0;
+  for(unsigned long i=0; i<g->e; i++)
+    {     
+      u = g->edges[i].s;
+      v = g->edges[i].t;
+      if(core[u]==core[v])
+	{
+	  degres[core[u]]++; 
+	}
+    }
+
+  for(int i=0; i<g->n; i++)
     {
-      double diff = (double) (g->cd[i+1]-g->cd[i]);      
-      degres[core[i]]+=diff;
       cpt[core[i]]++;
     }  
-  double res = 0;
-  for(unsigned long i=0; i<max_core; i++)
+  for(int i=0; i<max_core+1; i++)
     {
-      //double temp = (double) (i);
-      //degres[i] /= (double) (g->cd[g->n]);
-      //printf("cpt[%lu] = %lf\n",i,cpt[i]);
-      if(degres[i]==0)
-	continue;
-      //res+=degres[i];
-      //res+=degres[i]/2;
-      //res+=cpt[i]*i;
-      res+=(degres[i]/cpt[i]);// *temp;
-    } 
-  free(cpt);
+      res+= (double) (degres[i]/cpt[i]);
+    }
+  
   free(degres);
-  return (double) (res/(max_core+1));  
+  free(cpt);
+  return (res);
+}
+
+double average_degree_density(adjlist *g, unsigned long *order, unsigned long k_first_nodes_order)
+{
+  /*
+    Params ordre de la core decomposition : order
+    k_first_nodes_order : p  
+   */
+  unsigned long u=0;
+  unsigned long v=0;
+  unsigned long nb_degrees=0;
+  int *marked = calloc(g->n,sizeof(int));
+  for(unsigned long i=0; i<k_first_nodes_order;i++)
+    {
+      u = order[i];
+      //marked[u]=1;
+      for(unsigned long j=g->cd[u]; j<g->cd[u+1];j++)
+	{
+	  v = g->adj[j];
+	  
+	  if(order[v]<k_first_nodes_order)
+	    {
+	      nb_degrees++;
+	    }
+	  //  marked[v]=1;
+	}
+    }
+  free(marked);
+  return (double) ((double) (nb_degrees)/2.0)/((double) (k_first_nodes_order) );
 }
 
 int main(int argc, char **argv)
@@ -381,35 +401,20 @@ int main(int argc, char **argv)
   t1=time(NULL);
 
   //Initialisation 
-  printf("Reading edgelist from file %s\n",argv[1]);
   g=readedgelist(argv[1]);
-  printf("Number of nodes: %lu\n",g->n);
-  printf("Number of edges: %lu\n",g->e);
-  printf("Building the adjacency list\n");
   mkadjlist(g);
 
 
   unsigned long *core = calloc(g->n, sizeof(unsigned long));
   unsigned long *order = core_decomposition(g,core);
-  /*printf("Affichage core \n");
-  for(int i=0; i<g->n;i++)
-    printf("i:%d, %lu\n",i,core[i]);
-  */
-  //double avg = average_degree_density(g);
-  double avg = average_degree_density_2(order,core,g);
+
+  double avg = average_degree_density(g,order,g->n);
   printf("avarage degree density : %lf\n",avg);
 
-  //unsigned long max_prefix = size_densest_core_ordering_prefix_3(core, g);
-  
-  //printf("\ndensest prefix = %lu\n",max_prefix);
-
-
-  //double *res = compute_density_score(g,10);
   free_adjlist(g);
   free(order);
   free(core);
-  t2=time(NULL);
-  
+  t2=time(NULL);  
   printf("- Overall time = %ldh%ldm%lds\n",(t2-t1)/3600,((t2-t1)%3600)/60,((t2-t1)%60));
 
   return 0; 
