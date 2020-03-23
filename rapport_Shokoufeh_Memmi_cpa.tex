@@ -17,13 +17,13 @@
 \chapter{Préambule}
 Les tests que nous avons effectués ont été fait sur une machine possédant 16 Go de RAM ainsi qu'un processeur cadencé à 3.8 Ghz et muni de 12 cores.
 \\
-Nous avons pu effectuer, au cours de nos recherches, plusieurs implémentations différentes (utilisant différentes structures) dans le but d'optimiser au maximum nos temps d'exécution. 
+Nous avons pu effectuer, au cours de nos recherches, plusieurs implémentations différentes (utilisant différentes structures) dans le but d'optimiser au maximum nos temps d'exécutions. 
 \newline 
 
 \chapter{Présentation de nos structures de données}
 Nous avons utilisé deux structures de données afin de stocker nos graph en mémoire.
 \\
-Il y a d'une part adjmatrix qui contient une matrice d'incidence. Elle est pratique car elle est assez intuitive à utiliser. Cependant, dès que le graph que nous utilisons est grand est qu'il n'est pas fortement connexe, cette structure doit être dépréciée au profit de la seconde structure de donneé.
+Il y a d'une part adjmatrix qui contient une matrice d'incidence. Elle est pratique car elle est assez intuitive à utiliser. Cependant, dès que le graph que nous utilisons est grand est qu'il n'est pas fortement connexe, cette structure doit être dépréciée au profit de la seconde structure de donneés.
 \\
 La seconde structure de donnée est la structure adjlist. Cette structure contient un tableau qui indique les degrés cumulés de chaque noeud. 
 \\
@@ -105,10 +105,8 @@ En effet, nous allons devoir faire un bfs sur chaque composante connexe.
 \\
 Nous aurons dans le pire des cas, une complexité en O(\textbf{U * L*log(L)}).
 \newline
-U étant le nombre de composantes connexes et L le nombre de noeud de cette composante connexe.
+U étant le nombre de composantes connexes et L le nombre moyen de noeuds d'une composante connexe.
 \subsection{Analyse expérimentale}
-fjdd
-\newline
 Nous avons pu obtenir les temps d'exécution suivants pour un nombre de noeuds NDIAMETER fixé à 100
 \begin{center}
     \begin{tabular}{|l|c|}
@@ -191,16 +189,13 @@ Nous avons effectué une implémentation de l'algorithme de label propagation qu
 \\
 Pour ce faire, nous avons utilisé la structure adjmatrix car cela nous semblait plus simple et que nous travaillions sur des graphes jouets plus modestes.
 \subsection{Analyse de la complexité théorique}
-La fonction highest\_density fait dans le pire des cas 1 fois S comparaison plus 3 fois S comparaisons pour la deuxième boucle. 
+La fonction highest\_density fait dans le pire des cas 1 fois S comparaisons plus 3 fois S comparaisons pour la deuxième boucle. 
 \\
-Nous conservons une complexité linéaire O(A).
-\\
-Avec A le nombre d'arêtes de notre graph.
+Nous conservons une complexité linéaire O(S).
 \\
 Le core de label\_propagation est une boucle qui itére sur tous les sommets et leur applique highest\_density.
 \\
-Par conséquent nous avons une complexité en O($S*A$).
-
+Par conséquent nous avons une complexité en O($S*S$).
 \subsection{Analyse expérimentale / Simple Benchmark}
 Nous obtenons les résultats suivants:
 \\
@@ -244,7 +239,7 @@ La seconde fois où nous utilisons l'indice de Jaccard c'est pour connaître la 
 Ce calcul constitue la partie la plus fondamentale de notre algorithme.
 \clearpage
 \subsection{Analyse expérimentale}
-Nous avons conservé le même procédé pouvoir comparer l'efficacité de nos différents algorithmes.
+Nous avons conservé le même procédé afin de comparer l'efficacité de nos différents algorithmes.
 \\
 Nous avons donc toujours un p fixé à .5, un nombre de noeuds fixé à 400 ainsi qu'un nombre de clusters fixé à 8.
 Nous obtenons le graph suivant :
@@ -326,7 +321,7 @@ Le but de cet algorithme est de trouver la matrice stationnaire vers laquelle co
 \\
 La somme de tous éléments du vecteur que nous renvoie notre algorithme fait 1.
 \\
-L'algorithme nous renvoie la probabilité de se trouver en ce noeud après une infinité d'itérations.
+L'algorithme nous renvoie la probabilité de se trouver en chaquenoeud après une infinité d'itérations.
 \\
 Il permet de déterminer le vecteur propre de la matrice représentant notre graphe.
 \\
@@ -425,14 +420,16 @@ $\alpha =0.15,\alpha=0.9$ log scale
 \chapter{Conclusion}
 Durant toutes nos recherches nous avons pu utiliser différentes structures de données dans le but de répondre à des problématiques très actuelles. 
 \\
-Nous avons pu étudier des algorithmes permettant de détecter des communautés, de page ranker un graph(c'est déterminer sa matrice stationnaire lorsqu'il converge), ou encore de décomposer un graph en différents cores et de détecter des cliques.
+Nous avons pu étudier des algorithmes permettant de détecter des communautés, de page ranker un graph, ou encore de décomposer un graph en différents cores et de détecter des cliques.
 \\
 \newline
-Pour répondre à toutes ces problématiques, nous avons dû utiliser les structures de données les plus appropriées afin de garder sous contrôle les temps d'exécution ainsi que l'espace mémoire consommé par nos programmes.
+Pour répondre à toutes ces problématiques, nous avons dû utiliser les structures de données les plus appropriées afin de garder sous contrôle les temps d'exécution ainsi que l'espace mémoire consommée par nos programmes.
 \newline
-Nous avons pu constater une nouvelle fois que la structure de données la plus appropriée pour répondre à une problématique pouvait fluctuer.
+Nous avons pu constater une nouvelle fois que les structures de données les plus appropriées pour répondre à une problématique peuvent fluctuer.
 \\
 Ainsi, lorsque nous voulons modifier le graph ou qu'un graph est fortement connexe, il est préférable d'utiliser l'adjacency matrix.\\
 Alors que lorsque nous travaillons avec des graphes très grands et pas très connexes il est préférable d'utiliser la structure de données adjacency array.
-
+\newline
+\\
+À une époque où les quantités de données échangées explosent, il peut s'avérer salvateur de bien réflechir aux structures de données mises en jeu lors de l'utilisation d'un programme.
 \end{document}          
