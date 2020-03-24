@@ -425,7 +425,8 @@ Comme pour la détection de communauté, l'algorithme repose sur la connexité d
 \\
 Cependant avec la décomposition kcore, nous raisonnons de l'extérieur du graph vers l'intérieur du graph. Il y a une notion d'imbrication dedans.
 \\
-En effet, on prend en compte les degrés des noeuds.
+Dans ces parties (EXO1 etEXO3) nous avons calculé le core value et score de chaque nodes et nous avons sorte les nodes en base de core value et score et pour chaque ces parties nous avons trouvé le average degrés densité pour chaque sousgraph (n premiere sougraph) et rendre le maximum entre eux et les nombres des nodes de se sousgraphe. pour trouver les score des nodes nous avons teste pour different iteration. 
+nous avons aussi calcule le degree densite plus haute et les comparer.
 \\
 \section{Analyse de la densité}
 Pour commencer nous avons créé nos algorithme de core decomposition afin de pouvoir faire une analyse des densités demandés.
@@ -460,8 +461,6 @@ LiveJournal & 17.83 & 45.7 & 2.7 & 15  \\
 \end{tabular}
 \label {table:nonlin}
 \end{table}
-
-
 
 \section{Exercice 2}
 
