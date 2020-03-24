@@ -68,4 +68,5 @@ Affiche:
 	-le nombre de noeuds du sous graph
 	-edge density
 	-Le score de density du sous graph maximum son nombre de noeuds
+	-le plus haut degree density
 	
