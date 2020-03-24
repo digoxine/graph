@@ -453,9 +453,9 @@ Voici les résultats de k-core decomposition ainsi que les résultats de average
 name & Average degree density graph complet & max Average Degree Density(i) & Edge density(ii) & Size of the densest core ordering prefix(iii) \\[0.5ex]
 \hline
 
-Email & 50.88 & 30.5 & 2.1 & 9 \\
-Amazon & 3.375 & 13.5 & 0.94 & 8 \\
-LiveJournal & 17.83 & 45.7 & 2.7 & 15  \\
+Email & 50.88 & 30.5 & 0.25 & 9 \\
+Amazon & 3.375 & 13.5 & 0.21 & 8 \\
+LiveJournal & 17.83 & 45.7 & 0.92 & 15  \\
 
 \hline
 \end{tabular}
@@ -474,9 +474,9 @@ LiveJournal & 17.83 & 45.7 & 2.7 & 15  \\
 name & max Average Degree Density(i)&Edge density(ii)&Size of the densest core ordering prefix(iii) & time of calcul \\[0.5ex]
 \hline
 
-Email & 15.4 & 1.07 & 8 & 1s \\
+Email & 15.4 & 0.25 & 8 & 1s \\
 Amazon & 1.14 & 0.095 & 7 & 49s \\
-LiveJournal & &  &  &   \\
+LiveJournal 123 & 0.25 &  14 & 15min &   \\
 
 \hline
 \end{tabular}
@@ -508,7 +508,7 @@ LiveJournal & &  &  &   \\
 name & max Average degree Density(i)&Edge density(ii)&Size of the densest core ordering prefix(iii) & time of calcul \\[0.5ex]
 \hline
 
-Email & 17.7 & 1.5 & 7 & 2s \\
+Email & 17.7 & 0.23 & 7 & 2s \\
 Amazon & 2.66 & 0.666 & 3 & 58s \\
 LiveJournal & &  &  &   \\
 
@@ -520,11 +520,13 @@ LiveJournal & &  &  &   \\
 \begin{table}[ht]
 \caption{max average density for graphs}
 \centering
-\begin{tabular}{|c c |}
+\begin{tabular}{|c c c c|}
+\hline\hline
+name & t=10 & t=100 & t=1000  \\[0.5ex]
 \hline
-Email & 47 \\
-Amazon & 5 \\
-LiveJournal & 124  \\
+Email & 47 & 46 & 46\\
+Amazon & 5 &  4 & 4\\
+LiveJournal & 202 & 230 & 200\\
 \hline
 \end{tabular}
 \label {table:nonlin}
