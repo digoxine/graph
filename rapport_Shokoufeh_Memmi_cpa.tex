@@ -7,13 +7,13 @@
 \usepackage{caption}
 % Title Page
 \title{Rapport CPA}
-\author{Memmi Sacha \\ Shokoufeh}
+\author{Memmi Sacha \\ Ahmadi Simab Shokoufeh }
 
 
 \begin{document}
+
 \maketitle
 
-\clearpage
 \chapter{Préambule}
 Les tests que nous avons effectués ont été fait sur une machine possédant 16 Go de RAM ainsi qu'un processeur cadencé à 3.8 Ghz et muni de 12 cores.
 \\
@@ -419,16 +419,16 @@ $\alpha =0.15,\alpha=0.9$ log scale
 \chapter{Densest subgraph}
 \section{Préambule}
 Comme chacun sait, l'analyse de la densité d'un graph est un outil précieux de data mining.
-Il permet, à partir d'un graph qui peut paraître opaque de détecter classer les différents noeuds de notre graph un peu à la manière de la détection de communautés. 
+Il permet, à partir d'un graph qui peut paraître opaque de détecter/classer les différents noeuds de notre graph un peu à la manière de la détection de communautés. 
 \\
 Comme pour la détection de communauté, l'algorithme repose sur la connexité de nos noeuds.
 \\
-Cependant avec la décomposition kcore, nous raisonnons de l'extérieur du graph vers l'intérieur du graph. Il y a une notion d'imbrication dedans.
+Cependant avec la décomposition kcore, nous raisonnons de l'extérieur du graph vers l'intérieur du graph. Il y a une notion d'imbrication au sein de cet algorithme.
 \\
-Dans ces parties (EXO1 etEXO3) nous avons calculé le core value et score de chaque nodes et nous avons sorte les nodes en base de core value et score et pour chaque ces parties nous avons trouvé le average degrés densité pour chaque sousgraph (n premiere sougraph) et rendre le maximum entre eux et les nombres des nodes de se sousgraphe. pour trouver les score des nodes nous avons teste pour different iteration. 
-nous avons aussi calcule le degree densite plus haute et les comparer.
+En effet, on prend en compte les degrés des noeuds.
 \\
-\section{Analyse de la densité}
+Pour implémenter cet algorithme nous avons décidé d'utiliser la structure de données d'adjacency array.
+\section{Analyse de la densité (exercice1)}
 Pour commencer nous avons créé nos algorithme de core decomposition afin de pouvoir faire une analyse des densités demandés.
 \\
 Notre algorithme se base sur une boucle qui, au début, prend le premier sous graph pris dans l'ordre donné par core decomposition.\\
@@ -440,7 +440,10 @@ Puis le premier et le second élément et ainsi de suite.
 \indent -order qui indique l'ordre de chaque noeud
         \\
         \\
-Comme dit plus haut, l'algorithme core décomposition nous a permis de calculer la densité moyenne des degrés et le maximum average degree density pour notre graph complet et n premiere sousgraph base sur core value des nodes. et le densest subgraph calcule la densité moyenne des degrés et le maximum average degree density pour notre graph complet et n premiere sousgraph base sur score des nodes.
+Comme dit plus haut, l'algorithme core decomposition nous a permis de calculer la densité moyenne des degrés dans notre graph complet.
+\\
+Comme dit plus haut, l'algorithme core décomposition nous a permis de calculer la densité moyenne des degrés et le maximum average degree density pour notre graph complet 
+\\
 Grâce à cela, nous avons pu voir un peu plus clair dans notre jeu de données.
 \clearpage
 Voici les résultats de k-core decomposition ainsi que les résultats de average degree density le max average degree density ainsi que le edge density.
@@ -449,33 +452,41 @@ Voici les résultats de k-core decomposition ainsi que les résultats de average
 \centering
 \begin{tabular}{|c c c c c|}
 \hline\hline
-name & Average degree density graph complet & max Average Degree Density(i) & Edge density(ii) & Size of the densest core ordering prefix(iii) \\[0.5ex]
+name & ADD graph complet & max ADD(i) & Edge density(ii) & Size of the densest core ordering prefix(iii) \\[0.5ex]
 \hline
 
-Email & 50.88 & 30.5 & 0.25 & 9 \\
-Amazon & 3.375 & 13.5 & 0.21 & 8 \\
-LiveJournal & 17.83 & 45.7 & 0.92 & 15  \\
+Email & 50.88 & 30.5 & 2.1 & 9 \\
+Amazon & 3.375 & 13.5 & 0.94 & 8 \\
+LiveJournal & 17.83 & 45.7 & 2.7 & 15  \\
 
 \hline
 \end{tabular}
 \label {table:nonlin}
 \end{table}
 
+
+
 \section{Exercice 2}
-
+\begin{figure}[H]
+  \caption{authors x= degree y=coreness}
+  \centering
+    \includegraphics{./Datas/core_results/444.jpg}    
+\end{figure}
+Des noeuds à faible densités ont une valeur de core élevée. les authors anomalous sont des points avec un kcore de 100 et un degré de 35 qui est pour Myunggwon Hwang et pour la personne avec le x=35 et y=100 est monsieur Stacey D. Finley. 
 \section{Exercice 3}
-
+Ci-dessous les résultats obtenus. \\
+ADD = Average Degree Density\\
 \begin{table}[ht]
 \caption{densest subgraph avec t=10}
 \centering
 \begin{tabular}{|c c c c c|}
 \hline\hline
-name & max Average Degree Density(i)&Edge density(ii)&Size of the densest core ordering prefix(iii) & time of calcul \\[0.5ex]
+name & max ADD(i)&Edge density(ii)&Size of the densest core ordering prefix(iii) & time \\[0.5ex]
 \hline
 
-Email & 15.4 & 0.25 & 8 & 1s \\
+Email & 15.4 & 1.07 & 8 & 1s \\
 Amazon & 1.14 & 0.095 & 7 & 49s \\
-LiveJournal & 123 & 0.25 &  14 & 15min &   \\
+LiveJournal & &  &  &   \\
 
 \hline
 \end{tabular}
@@ -487,10 +498,9 @@ LiveJournal & 123 & 0.25 &  14 & 15min &   \\
 \centering
 \begin{tabular}{|c c c c c|}
 \hline\hline
-name & max Average Degree Density(i)&Edge density(ii)&Size of the densest core ordering prefix(iii) & time of calcul \\[0.5ex]
+name & max ADD(i)&Edge density(ii)&Size of the densest core ordering prefix(iii) & time \\[0.5ex]
 \hline
-
-Email & 18.28 & 1.5 & 7 & 1s \\
+Email & 18.28 & 0.28& 7 & 1s \\
 Amazon & 2.66 & 0.666 & 3 & 44s \\
 LiveJournal & &  &  &   \\
 
@@ -501,10 +511,9 @@ LiveJournal & &  &  &   \\
 
 \begin{table}[ht]
 \caption{densest subgraph avec t=1000}
-\centering
 \begin{tabular}{|c c c c c|}
 \hline\hline
-name & max Average degree Density(i)&Edge density(ii)&Size of the densest core ordering prefix(iii) & time of calcul \\[0.5ex]
+name & max ADD(i)&Edge density(ii)&Size densest core ordering prefix & time \\[0.23ex]
 \hline
 
 Email & 17.7 & 0.23 & 7 & 2s \\
@@ -516,20 +525,19 @@ LiveJournal & &  &  &   \\
 \label {table:nonlin}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
 \caption{max average density for graphs}
 \centering
-\begin{tabular}{|c c c c|}
-\hline\hline
-name & t=10 & t=100 & t=1000  \\[0.5ex]
+\begin{tabular}{|c c |}
 \hline
-Email & 47 & 46 & 46\\
-Amazon & 5 &  4 & 4\\
-LiveJournal & 202 & 230 & 200\\
+Email & 47 \\
+Amazon & 5 \\
+LiveJournal & 124  \\
 \hline
 \end{tabular}
 \label {table:nonlin}
 \end{table}
+On peut voir que la différence entre la plus haute densité pour les graphs et la densité obtenue diminue au fil des itérations. 
 \chapter{Conclusion}
 Durant toutes nos recherches nous avons pu utiliser différentes structures de données dans le but de répondre à des problématiques très actuelles. 
 \\
@@ -545,5 +553,4 @@ Alors que lorsque nous travaillons avec des graphes très grands et pas très co
 \newline
 \\
 À une époque où les quantités de données échangées explosent, il peut s'avérer salvateur de bien réflechir aux structures de données mises en jeu lors de l'utilisation d'un programme.
-
 \end{document}          
