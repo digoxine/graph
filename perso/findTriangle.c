@@ -151,8 +151,8 @@ int main(int argc,char** argv){
   printf("Building the adjacency list\n");
   mkadjlist(g);
 
-  //int nb_triangle = find_triangle(g);
-  //printf("nb_triangles = %d\n",nb_triangle);
+  int nb_triangle = find_triangle(g);
+  printf("nb_triangles = %d\n",nb_triangle);
 
   
   double transitivity_r = transitivity_ratio_2(g);
